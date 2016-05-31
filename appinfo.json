@@ -1,0 +1,23 @@
+{
+    "appKeys": {
+        "message": 1,
+        "status": 0
+    },
+    "capabilities": [
+        ""
+    ],
+    "companyName": "asheppard@edisms.co.uk",
+    "enableMultiJS": true,
+    "longName": "circle",
+    "projectType": "native",
+    "resources": {
+        "media": []
+    },
+    "sdkVersion": "3",
+    "shortName": "circle",
+    "uuid": "0ada88fe-d605-4831-b04c-41b442fad79c",
+    "versionLabel": "1.0",
+    "watchapp": {
+        "watchface": false
+    }
+}
