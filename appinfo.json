@@ -15,6 +15,9 @@
     },
     "sdkVersion": "3",
     "shortName": "circle",
+    "targetPlatforms": [
+        "basalt"
+    ],
     "uuid": "0ada88fe-d605-4831-b04c-41b442fad79c",
     "versionLabel": "1.0",
     "watchapp": {

@@ -74,7 +74,7 @@ var OWMWeather = function(options) {
     console.log("callbackForNack: " + error);
     var propValue;
     for(var propName in data) {
-        propValue = data[propName]
+        propValue = data[propName];
     
         console.log(propName,propValue);
     }
@@ -85,12 +85,17 @@ var OWMWeather = function(options) {
     var count = json.cnt;
     for (var c = 0; (c < count) && (c < 11); c++)
     {
-      console.log("Weather: "+ c + " time " + this.timeConverter(json.list[c].dt) + " type " + 
-                json.list[c].weather[0].id + ' ' + json.list[c].clouds.all);  
+      console.log("Weather: "+ c + " time " + this.timeConverter(json.list[c].dt) + 
+                  " type " + json.list[c].weather[0].id + ' clouds: ' + json.list[c].clouds.all + 
+                  " temp:" + json.list[c].main.temp +
+                  " wind:" + json.list[c].wind.speed);  
             
       var rain = 0;
-      if (json.list[c].rain.hasOwnProperty("3h")) {
-        rain = json.list[c].rain["3h"];
+      if (json.list[c].hasOwnProperty("rain"))
+      {      
+        if (json.list[c].rain.hasOwnProperty("3h")) {
+          rain = json.list[c].rain["3h"];
+        }
       }
       var snow = 0;
       if (json.list[c].hasOwnProperty("snow"))
@@ -108,29 +113,29 @@ var OWMWeather = function(options) {
         'ConditionId': json.list[c].weather[0].id,
         //'Description': json.list[0].weather[0].description,
         //'DescriptionShort': json.list[0].weather[0].main,
-        'TempK': Math.round(json.list[0].main.temp),
+        'TempK': Math.round(json.list[c].main.temp),
         'Name': json.city.name,
-        'Pressure': Math.round(json.list[0].main.pressure),
-        'WindSpeed': Math.round(json.list[0].wind.speed),
-        'WindDirection': Math.round(json.list[0].wind.deg),
+        'Pressure': Math.round(json.list[c].main.pressure),
+        'WindSpeed': Math.round((json.list[c].wind.speed*1000)/(60*60)),
+        'WindDirection': Math.round(json.list[c].wind.deg),
         'Rain': Math.round(rain),
         'Snow' : Math.round(snow),
         'Clouds' : json.list[c].clouds.all
-      }, callbackForAck, callbackForNack);      
-        
+      //}, callbackForAck, callbackForNack);      
+      });  
     }
-    console.log("send done");
+    //console.log("send done");
     var a = this.sendAppMessage({
       'Reply': 2,
       'Segment':0
     }, callbackForAck, callbackForNack);   
-    console.log("send done 2: " + a);
+    //console.log("send done 2: " + a);
   };
 
   this._onLocationSuccess = function(pos) {
     var url = 'http://api.openweathermap.org/data/2.5/forecast?lat=' +
       pos.coords.latitude + '&lon=' + pos.coords.longitude + '&appid=' + this._apiKey;
-    url = "http://api.openweathermap.org/data/2.5/forecast?q=London,us&appid=f402bfb5a34389b2501c3e7007b46668";
+    url = "http://api.openweathermap.org/data/2.5/forecast?q=London,uk&appid=f402bfb5a34389b2501c3e7007b46668";
     console.log('owm-weather: Location success. Contacting OpenWeatherMap.org...');
     console.log(url);
 

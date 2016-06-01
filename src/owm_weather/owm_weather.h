@@ -44,7 +44,7 @@ typedef struct {
   int temp_f;
   //! Air pressure in millibars
   int pressure;
-  //! Wind speed in m/s
+  //! Wind speed in kph
   int wind_speed;
   //! Wind direction in meteorological degrees
   int wind_direction;

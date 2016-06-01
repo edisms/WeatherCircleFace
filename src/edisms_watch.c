@@ -1,5 +1,6 @@
 #include <pebble.h>
 #include "weather_circle.h"
+#include "weather.h"
 
 static Window *s_main_window;
 static TextLayer *s_time_layer;
@@ -26,6 +27,11 @@ void update_time() {
   text_layer_set_text(s_time_layer, s_buffer);
 }
 
+void weather_callback()
+{
+  APP_LOG(APP_LOG_LEVEL_INFO, "weather_callback"); 
+  redraw_weather();
+}
 
 void init() {
   // Create main Window element and assign to pointer
@@ -43,12 +49,18 @@ void init() {
   // Make sure the time is displayed from the start
   update_time();
 
+  weather_init();
   
-// Register with TickTimerService
-tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);  
+  weather_setup(weather_callback);
+  
+  weather_refresh();
+  
+  // Register with TickTimerService
+  tick_timer_service_subscribe(MINUTE_UNIT|HOUR_UNIT, tick_handler);  
 }
 
 void deinit() {
+  weather_deinit();
   // Destroy Window
   window_destroy(s_main_window);
 }
@@ -72,7 +84,7 @@ void main_window_load(Window *window) {
   // Improve the layout to be more like a watchface
   text_layer_set_background_color(s_time_layer, GColorClear);
   text_layer_set_text_color(s_time_layer, GColorBlack);
-  text_layer_set_font(s_time_layer, fonts_get_system_font(FONT_KEY_BITHAM_42_BOLD));
+  text_layer_set_font(s_time_layer, fonts_get_system_font(FONT_KEY_BITHAM_34_MEDIUM_NUMBERS));
   text_layer_set_text_alignment(s_time_layer, GTextAlignmentCenter);
 
   // Add it as a child layer to the Window's root layer
@@ -87,5 +99,14 @@ void main_window_unload(Window *window) {
 
 void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   update_time();
+  if (units_changed == HOUR_UNIT)
+  {
+    weather_refresh();
+  }
+  //if (tick_time->tm_min % 5 == 0)
+  //{
+  //  update_weather();
+  //}
 }
+
 

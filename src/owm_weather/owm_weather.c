@@ -39,9 +39,9 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   OWMWeatherInfo *info = 0;
   Tuple *reply_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyReply));
   
-  if(reply_tuple) {
-    APP_LOG(APP_LOG_LEVEL_INFO, "Got reply with %ld", reply_tuple->value->int32);
-  }
+  //if(reply_tuple) {
+  //  APP_LOG(APP_LOG_LEVEL_INFO, "Got reply with %ld", reply_tuple->value->int32);
+  //}
   
   if(reply_tuple && reply_tuple->value->int32 == 1) {
     Tuple *seg_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeySegment));
@@ -75,19 +75,19 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
     Tuple *wind_direction_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyWindDirection));
     info->wind_direction = wind_direction_tuple->value->int32;
 
-    Tuple *rain_direction_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyRain));
-    info->rain = rain_direction_tuple->value->int32;
+    Tuple *rain_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyRain));
+    info->rain = rain_tuple->value->int32;
 
-    Tuple *snow_direction_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeySnow));
-    info->snow = snow_direction_tuple->value->int32;
+    Tuple *snow_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeySnow));
+    info->snow = snow_tuple->value->int32;
 
-    Tuple *cloud_direction_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyClouds));
-    info->clouds = cloud_direction_tuple->value->int32;     
+    Tuple *cloud_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyClouds));
+    info->clouds = cloud_tuple->value->int32;     
     
-    APP_LOG(APP_LOG_LEVEL_INFO, "Segment %ld, time %lu, description %s, desc_short %s",
-            seg_tuple->value->int32, info->forecast_time, info->description, info->description_short);
-    APP_LOG(APP_LOG_LEVEL_INFO, ", temp %d, rain %d, snow %d, clouds %d",
-      info->temp_c, info->rain, info->snow, info->clouds);        
+    APP_LOG(APP_LOG_LEVEL_INFO, "Segment %ld, time %lu, ", //description %s, desc_short %s",
+            seg_tuple->value->int32, info->forecast_time ); //, info->description, info->description_short);
+    APP_LOG(APP_LOG_LEVEL_INFO, ", temp %d, rain %d, snow %d, clouds %d, wind %d",
+      info->temp_c, info->rain, info->snow, info->clouds, info->wind_speed);        
     
     s_status = OWMWeatherStatusBuilding;
     if (info->segment > s_info_count){
