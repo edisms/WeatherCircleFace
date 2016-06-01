@@ -156,7 +156,7 @@ void getSegmentData(int segment, int *temp, GColor *c_temp, int *rain, GColor *c
   else if (raw_cloud < 80)
     *cloud = 40;
   else 
-    *wind = 45;  
+    *cloud = 45;  
 
   c_cloud->argb = GColorDarkGrayARGB8;
 

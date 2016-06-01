@@ -116,7 +116,7 @@ var OWMWeather = function(options) {
         'TempK': Math.round(json.list[c].main.temp),
         'Name': json.city.name,
         'Pressure': Math.round(json.list[c].main.pressure),
-        'WindSpeed': Math.round((json.list[c].wind.speed*1000)/(60*60)),
+        'WindSpeed': Math.round(json.list[c].wind.speed*3.6),
         'WindDirection': Math.round(json.list[c].wind.deg),
         'Rain': Math.round(rain),
         'Snow' : Math.round(snow),
