@@ -93,9 +93,9 @@ void main_window_load(Window *window) {
   // Add it as a child layer to the Window's root layer
   layer_add_child(window_layer, text_layer_get_layer(s_time_layer));
   
-  //bt_monitor_init(window);
-  //bat_monitor_init(window);
-  //health_monitor_init(window);
+  bt_monitor_init(window);
+  bat_monitor_init(window);
+  health_monitor_init(window);
 }
 
 void main_window_unload(Window *window) {

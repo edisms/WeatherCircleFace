@@ -3,7 +3,7 @@
 
 void health_monitor_refreah();
 
-static Layer *s_window_layer;//, *s_progress_layer, *s_average_layer;
+//static Layer *s_window_layer;//, *s_progress_layer, *s_average_layer;
 static TextLayer *s_step_layer;
 
 static char s_current_steps_buffer[16];
@@ -25,11 +25,13 @@ static void get_step_goal() {
   const time_t end = start + SECONDS_PER_DAY;
   s_step_goal = (int)health_service_sum_averaged(HealthMetricStepCount,
     start, end, HealthServiceTimeScopeDaily);
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "Step goal %d", s_step_goal);
 }
 
 // Todays current step count
 static void get_step_count() {
   s_step_count = (int)health_service_sum_today(HealthMetricStepCount);
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "Step count %d", s_step_count);
 }
 
 // Average daily step count for this time of day
@@ -38,6 +40,7 @@ static void get_step_average() {
   const time_t end = time(NULL);
   s_step_average = (int)health_service_sum_averaged(HealthMetricStepCount,
     start, end, HealthServiceTimeScopeDaily);
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "Step average %d", s_step_average);
 }
 
 static void display_step_count() {
@@ -65,6 +68,7 @@ static void display_step_count() {
 }
 
 static void health_handler(HealthEventType event, void *context) {
+   APP_LOG(APP_LOG_LEVEL_DEBUG, "health_handler %d", event);
   if(event == HealthEventSignificantUpdate) {
     get_step_goal();
   }
@@ -105,21 +109,26 @@ static void average_layer_update_proc(Layer *layer, GContext *ctx) {
 }
 */
 void health_monitor_init(Window *window) {
-  GRect window_bounds = layer_get_bounds(s_window_layer);
+  Layer *window_layer = window_get_root_layer(window);
+  GRect window_bounds = layer_get_bounds(window_layer);
 
   // Create a layer to hold the current step count
   s_step_layer = text_layer_create(
-      GRect(0, window_bounds.size.h - 30, window_bounds.size.w, 30));
+      GRect(0, window_bounds.size.h - 16, window_bounds.size.w, 16));
   
   text_layer_set_text_color(s_step_layer, GColorBlack);
   text_layer_set_background_color(s_step_layer, GColorClear);
   text_layer_set_font(s_step_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
   text_layer_set_text_alignment(s_step_layer, GTextAlignmentRight);
-
+   
+  text_layer_set_text(s_step_layer, "Inital data");
+  
   // Subscribe to health events if we can
   if(step_data_is_available()) {
     health_service_events_subscribe(health_handler, NULL);
   }
+    
+  layer_add_child(window_layer, text_layer_get_layer(s_step_layer));
 }
 
 void health_monitor_deinit(Window *window) {

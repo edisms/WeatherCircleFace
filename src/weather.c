@@ -51,11 +51,11 @@ void weather_callback(int segment, OWMWeatherStatus status) {
   switch(status) {
     case OWMWeatherStatusAvailable:
     {
-      OWMWeatherInfo *info = owm_weather_peek_index(0);
-      APP_LOG(APP_LOG_LEVEL_INFO,
-        "Temperature (K/C/F): %d/%d/%d\n\nDescription/short:\n%s/%s\n\nPressure: %d\n\nWind speed/dir: %d/%d",
-        info->temp_k, info->temp_c, info->temp_f, info->description,
-        info->description_short, info->pressure, info->wind_speed, info->wind_direction);
+      //OWMWeatherInfo *info = owm_weather_peek_index(0);
+      //APP_LOG(APP_LOG_LEVEL_INFO,
+      //  "Temperature (K/C/F): %d/%d/%d\n\nDescription/short:\n%s/%s\n\nPressure: %d\n\nWind speed/dir: %d/%d",
+      //  info->temp_k, info->temp_c, info->temp_f, info->description,
+      //  info->description_short, info->pressure, info->wind_speed, info->wind_direction);
       
       s_ready = true;
       if (s_cb)

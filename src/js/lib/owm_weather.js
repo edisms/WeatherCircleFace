@@ -106,7 +106,7 @@ var OWMWeather = function(options) {
           snow = json.list[c].snow["3h"];
         }
       }  
-      console.log("rain = " + rain + " snow " + snow);
+      //console.log("rain = " + rain + " snow " + snow);
   
       this.sendAppMessage({
         'Reply': 1,
@@ -123,14 +123,15 @@ var OWMWeather = function(options) {
         'Rain': Math.round(rain),
         'Snow' : Math.round(snow),
         'Clouds' : json.list[c].clouds.all
-      }, callbackForAck, callbackForNack);      
-      //});  
+      //}, callbackForAck, callbackForNack);      
+      });  
     }
     //console.log("send done");
     this.sendAppMessage({
       'Reply': 2,
       'Segment':0
-    }, callbackForAck, callbackForNack);   
+    //}, callbackForAck, callbackForNack);   
+    });
   };
 
   this._onLocationSuccess = function(pos) {
@@ -158,21 +159,17 @@ var OWMWeather = function(options) {
     });
   };
 
-  this.appMessageHandler = function(dict) {
-    console.log('owm-weather: Got fetch request from C app (a)');
-    if(dict.payload[this.getAppKey('Request')]) {
-      console.log('owm-weather: Got fetch request from C app (b)');
-      this._apiKey = dict.payload[this.getAppKey('Request')];
-      if(dict.payload[this.getAppKey('Segment')]) {
-        console.log('owm-weather: Got fetch request from C app (c)');
-        this._segmentCount = dict.payload[this.getAppKey('Segment')];
+  this.appMessageHandler = function(e) {
+    var dict = e.payload;
+    if(dict["Request"]) {
+      this._apiKey = dict['Request'];
+      if(dict['Segment']) {
+        this._segmentCount = dict['Segment'];
       } 
       else {
         this._segmentCount = 10;
       }
         
-      console.log('owm-weather: Got fetch request from C app');
-
       navigator.geolocation.getCurrentPosition(
         this._onLocationSuccess.bind(this),
         this._onLocationError.bind(this), {
@@ -180,10 +177,6 @@ var OWMWeather = function(options) {
           maximumAge: 60000
       });
     }
-    else
-      {
-        console.log('owm-weather: Got fetch request from C app (bad request)');
-      }
   };
 };
 

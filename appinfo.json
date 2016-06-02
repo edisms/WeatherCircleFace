@@ -1,22 +1,22 @@
 {
     "appKeys": {
-        "Request": 1,
-        "Reply": 2,
-        "Time": 3,
-        "Segment": 4,    
+        "BadKey": 16,
+        "Cloud": 15,
         "ConditionId": 5,
         "Description": 6,
         "DescriptionShort": 7,
+        "LocationUnavailable": 17,
         "Name": 8,
-        "TempK": 9,
         "Pressure": 10,
-        "WindSpeed": 11,
-        "WindDirection": 12,
         "Rain": 13,
+        "Reply": 2,
+        "Request": 1,
+        "Segment": 4,
         "Snow": 14,
-        "Cloud": 15,
-        "BadKey": 16,
-        "LocationUnavailable": 17
+        "TempK": 9,
+        "Time": 3,
+        "WindDirection": 12,
+        "WindSpeed": 11
     },
     "capabilities": [
         "location",
@@ -27,7 +27,48 @@
     "longName": "WeatherCircleFace",
     "projectType": "native",
     "resources": {
-        "media": []
+        "media": [
+            {
+                "file": "images/pebble_battery_frame.png",
+                "name": "BATTERY_FRAME",
+                "targetPlatforms": [
+                    "basalt"
+                ],
+                "type": "bitmap"
+            },
+            {
+                "file": "images/Bluetooth-16-red.png",
+                "name": "BLUETOOTH_NOTOK",
+                "targetPlatforms": [
+                    "basalt"
+                ],
+                "type": "bitmap"
+            },
+            {
+                "file": "images/Bluetooth-16-blue.png",
+                "name": "BLUETOOTH_OK",
+                "targetPlatforms": [
+                    "basalt"
+                ],
+                "type": "bitmap"
+            },
+            {
+                "file": "images/pebble_bluetooth.png",
+                "name": "bluetooth_blank",
+                "targetPlatforms": [
+                    "basalt"
+                ],
+                "type": "bitmap"
+            },
+            {
+                "file": "images/pebble_battery.png",
+                "name": "battery",
+                "targetPlatforms": [
+                    "basalt"
+                ],
+                "type": "bitmap"
+            }
+        ]
     },
     "sdkVersion": "3",
     "shortName": "circle",

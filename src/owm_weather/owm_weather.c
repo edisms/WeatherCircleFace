@@ -53,12 +53,12 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
     //info->forecast_time = time_tuple->value->uint32;
     
     //Tuple *desc_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyDescription));
-    strncpy(info->description, "blank", OWM_WEATHER_BUFFER_SIZE);
+    //strncpy(info->description, "blank", OWM_WEATHER_BUFFER_SIZE);
     //strncpy(info->description, desc_tuple->value->cstring, OWM_WEATHER_BUFFER_SIZE);
 
     //Tuple *desc_short_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyDescriptionShort));
     //strncpy(info->description_short, desc_short_tuple->value->cstring, OWM_WEATHER_BUFFER_SIZE);
-    strncpy(info->description_short, "blank", OWM_WEATHER_BUFFER_SIZE);
+    //strncpy(info->description_short, "blank", OWM_WEATHER_BUFFER_SIZE);
 
     Tuple *temp_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyTempK));
     info->temp_k = temp_tuple->value->int32;
@@ -84,10 +84,10 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
     Tuple *cloud_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyClouds));
     info->clouds = cloud_tuple->value->int32;     
     
-    APP_LOG(APP_LOG_LEVEL_INFO, "Segment %ld, time %lu, ", //description %s, desc_short %s",
-            seg_tuple->value->int32, info->forecast_time ); //, info->description, info->description_short);
-    APP_LOG(APP_LOG_LEVEL_INFO, ", temp %d, rain %d, snow %d, clouds %d, wind %d",
-      info->temp_c, info->rain, info->snow, info->clouds, info->wind_speed);        
+    //APP_LOG(APP_LOG_LEVEL_INFO, "Segment %ld, time %lu, ", //description %s, desc_short %s",
+    //        seg_tuple->value->int32, info->forecast_time ); //, info->description, info->description_short);
+    //APP_LOG(APP_LOG_LEVEL_INFO, ", temp %d, rain %d, snow %d, clouds %d, wind %d",
+    //  info->temp_c, info->rain, info->snow, info->clouds, info->wind_speed);        
     
     s_status = OWMWeatherStatusBuilding;
     if (info->segment > s_info_count){
@@ -134,7 +134,7 @@ static bool fetch() {
     dict_write_cstring(out, 1, s_api_key);
   dict_write_int16(out, get_app_key(OWMWeatherAppMessageKeySegment), OWM_WEATHER_MAX_SEGMENT_COUNT);
 
-  APP_LOG(APP_LOG_LEVEL_ERROR, "sent message");
+  //APP_LOG(APP_LOG_LEVEL_ERROR, "sent message");
   result = app_message_outbox_send();
   if(result != APP_MSG_OK) {
     fail_and_callback();
