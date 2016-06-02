@@ -1,6 +1,9 @@
 #include <pebble.h>
 #include "weather_circle.h"
 #include "weather.h"
+#include "bt_monitor.h"
+#include "bat_monitor.h"
+#include "health_monitor.h"
 
 static Window *s_main_window;
 static TextLayer *s_time_layer;
@@ -89,11 +92,18 @@ void main_window_load(Window *window) {
 
   // Add it as a child layer to the Window's root layer
   layer_add_child(window_layer, text_layer_get_layer(s_time_layer));
+  
+  //bt_monitor_init(window);
+  //bat_monitor_init(window);
+  //health_monitor_init(window);
 }
 
 void main_window_unload(Window *window) {
   // Destroy TextLayer
   text_layer_destroy(s_time_layer);
+  bt_monitor_deinit(window);
+  bat_monitor_deinit(window);
+  health_monitor_deinit(window);
 }
 
 
@@ -108,5 +118,4 @@ void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   //  update_weather();
   //}
 }
-
 

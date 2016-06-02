@@ -13,8 +13,8 @@ static GRect s_bounds_d;
 
 void init_weather(Window* window){
   s_bounds_a = layer_get_bounds(window_get_root_layer(window));
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "Original bounds %d, %d -  %d, %d", s_bounds_a.origin.x,s_bounds_a.origin.y, 
-          s_bounds_a.size.h,s_bounds_a.size.w);  
+  //APP_LOG(APP_LOG_LEVEL_DEBUG, "Original bounds %d, %d -  %d, %d", s_bounds_a.origin.x,s_bounds_a.origin.y, 
+  //        s_bounds_a.size.h,s_bounds_a.size.w);  
   
   // Create canvas layer
   s_canvas_layer = layer_create(s_bounds_a);
@@ -78,7 +78,7 @@ void getSegmentData(int segment, int *temp, GColor *c_temp, int *rain, GColor *c
   weather_get_segment(0, &base_temp, &base_wind, &base_rain, &base_snow);  */   
   weather_get_segment(segment, &raw_temp, &raw_wind, &raw_rain, &raw_snow, &raw_cloud);    
   
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "seg %d, temp %d, wind %d, rain %d, cloud %d", segment, raw_temp, raw_wind, raw_rain, raw_cloud);
+  //APP_LOG(APP_LOG_LEVEL_DEBUG, "seg %d, temp %d, wind %d, rain %d, cloud %d", segment, raw_temp, raw_wind, raw_rain, raw_cloud);
   
   *temp = 45;
   *rain = 45;
@@ -195,8 +195,8 @@ void canvas_update_proc(Layer *layer, GContext *ctx) {
     int point_l_c = point - (cloud +1)/2;
     int point_r_c = point_l_c + cloud;   
     
-    APP_LOG(APP_LOG_LEVEL_DEBUG,"Temp %d %d-> %d (0x%x), Wind %d %d-> %d (0x%x), Rain %d %d-> %d (0x%x)",
-            temp, point_l_t, point_r_t, c_temp.argb, wind, point_l_w, point_r_w, c_wind.argb, rain, point_l_r, point_r_r, c_rain.argb);
+    //APP_LOG(APP_LOG_LEVEL_DEBUG,"Temp %d %d-> %d (0x%x), Wind %d %d-> %d (0x%x), Rain %d %d-> %d (0x%x)",
+    //        temp, point_l_t, point_r_t, c_temp.argb, wind, point_l_w, point_r_w, c_wind.argb, rain, point_l_r, point_r_r, c_rain.argb);
     
     graphics_context_set_stroke_color(ctx, c_temp);
     graphics_draw_arc(ctx, s_bounds_a, GOvalScaleModeFitCircle, DEG_TO_TRIGANGLE(point_l_t), DEG_TO_TRIGANGLE(point_r_t));

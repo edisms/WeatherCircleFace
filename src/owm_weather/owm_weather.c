@@ -1,7 +1,7 @@
 #include "owm_weather.h"
 
 typedef enum {
-  OWMWeatherAppMessageKeyRequest = 0,
+  OWMWeatherAppMessageKeyRequest = 1,
   OWMWeatherAppMessageKeyReply,
   OWMWeatherAppMessageKeyTime,
   OWMWeatherAppMessageKeySegment,   
@@ -49,8 +49,8 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
     
     info->segment = seg_tuple->value->int32;
 
-    Tuple *time_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyTime));
-    info->forecast_time = time_tuple->value->uint32;
+    //Tuple *time_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyTime));
+    //info->forecast_time = time_tuple->value->uint32;
     
     //Tuple *desc_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyDescription));
     strncpy(info->description, "blank", OWM_WEATHER_BUFFER_SIZE);
@@ -66,14 +66,14 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
     info->temp_f = ((info->temp_c * 9) / 5 /* *1.8 or 9/5 */) + 32;
     info->timestamp = time(NULL);
 
-    Tuple *pressure_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyPressure));
-    info->pressure = pressure_tuple->value->int32;
+    //Tuple *pressure_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyPressure));
+    //info->pressure = pressure_tuple->value->int32;
 
     Tuple *wind_speed_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyWindSpeed));
     info->wind_speed = wind_speed_tuple->value->int32;
 
-    Tuple *wind_direction_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyWindDirection));
-    info->wind_direction = wind_direction_tuple->value->int32;
+    //Tuple *wind_direction_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyWindDirection));
+    //info->wind_direction = wind_direction_tuple->value->int32;
 
     Tuple *rain_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyRain));
     info->rain = rain_tuple->value->int32;
@@ -129,9 +129,12 @@ static bool fetch() {
     return false;
   }
 
+  dict_write_int16(out, 0, 0);
   dict_write_cstring(out, get_app_key(OWMWeatherAppMessageKeyRequest), s_api_key);
+    dict_write_cstring(out, 1, s_api_key);
   dict_write_int16(out, get_app_key(OWMWeatherAppMessageKeySegment), OWM_WEATHER_MAX_SEGMENT_COUNT);
 
+  APP_LOG(APP_LOG_LEVEL_ERROR, "sent message");
   result = app_message_outbox_send();
   if(result != APP_MSG_OK) {
     fail_and_callback();
@@ -166,10 +169,10 @@ void owm_weather_init(char *api_key) {
 }
 
 bool owm_weather_fetch(OWMWeatherCallback *callback) {
-  //if(!s_info) {
-  //  APP_LOG(APP_LOG_LEVEL_ERROR, "OWM Weather library is not initialized!");
-  //  return false;
-  //}
+  /*if(!s_info) {
+    APP_LOG(APP_LOG_LEVEL_ERROR, "OWM Weather library is not initialized!");
+    return false;
+  }*/
 
   if(!callback) {
     APP_LOG(APP_LOG_LEVEL_ERROR, "OWMWeatherCallback was NULL!");

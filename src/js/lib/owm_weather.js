@@ -19,23 +19,23 @@ var OWMWeather = function(options) {
   this._appKeyBase = options.baseAppKey || 0;
 
   this._appKeys = {
-    'Request': 0,
-    'Reply': 1,
-    'Time': 2,
-    'Segment': 3,    
-    'ConditionId': 4,
-    'Description': 5,
-    'DescriptionShort': 6,
-    'Name': 7,
-    'TempK': 8,
-    'Pressure': 9,
-    'WindSpeed': 10,
-    'WindDirection': 11,
-    'Rain': 12,
-    'Snow': 13,
-    'Clouds': 14,
-    'BadKey': 15,
-    'LocationUnavailable': 16,
+    'Request': 1,
+    'Reply': 2,
+    'Time': 3,
+    'Segment': 4,    
+    'ConditionId': 5,
+    'Description': 6,
+    'DescriptionShort': 7,
+    'Name': 8,
+    'TempK': 9,
+    'Pressure': 10,
+    'WindSpeed': 11,
+    'WindDirection': 12,
+    'Rain': 13,
+    'Snow': 14,
+    'Clouds': 15,
+    'BadKey': 16,
+    'LocationUnavailable': 17,
   };
 
   this.getAppKey = function(keyName) {
@@ -56,7 +56,9 @@ var OWMWeather = function(options) {
 
   this._xhrWrapper = function(url, type, callback) {
     var xhr = new XMLHttpRequest();
+    console.log("request:" + url);
     xhr.onload = function () {
+      console.log("callback received");
       callback(xhr);
     };
     xhr.open(type, url);
@@ -85,10 +87,10 @@ var OWMWeather = function(options) {
     var count = json.cnt;
     for (var c = 0; (c < count) && (c < 11); c++)
     {
-      console.log("Weather: "+ c + " time " + this.timeConverter(json.list[c].dt) + 
-                  " type " + json.list[c].weather[0].id + ' clouds: ' + json.list[c].clouds.all + 
-                  " temp:" + json.list[c].main.temp +
-                  " wind:" + json.list[c].wind.speed);  
+      //console.log("Weather: "+ c + " time " + this.timeConverter(json.list[c].dt) + 
+      //            " type " + json.list[c].weather[0].id + ' clouds: ' + json.list[c].clouds.all + 
+      //           " temp:" + json.list[c].main.temp +
+      //            " wind:" + json.list[c].wind.speed);  
             
       var rain = 0;
       if (json.list[c].hasOwnProperty("rain"))
@@ -108,28 +110,27 @@ var OWMWeather = function(options) {
   
       this.sendAppMessage({
         'Reply': 1,
-        'Time': json.list[c].dt,
+        //'Time': json.list[c].dt,
         'Segment': c,
         'ConditionId': json.list[c].weather[0].id,
         //'Description': json.list[0].weather[0].description,
         //'DescriptionShort': json.list[0].weather[0].main,
         'TempK': Math.round(json.list[c].main.temp),
-        'Name': json.city.name,
-        'Pressure': Math.round(json.list[c].main.pressure),
+        //'Name': json.city.name,
+        //'Pressure': Math.round(json.list[c].main.pressure),
         'WindSpeed': Math.round(json.list[c].wind.speed*3.6),
-        'WindDirection': Math.round(json.list[c].wind.deg),
+        //'WindDirection': Math.round(json.list[c].wind.deg),
         'Rain': Math.round(rain),
         'Snow' : Math.round(snow),
         'Clouds' : json.list[c].clouds.all
-      //}, callbackForAck, callbackForNack);      
-      });  
+      }, callbackForAck, callbackForNack);      
+      //});  
     }
     //console.log("send done");
-    var a = this.sendAppMessage({
+    this.sendAppMessage({
       'Reply': 2,
       'Segment':0
     }, callbackForAck, callbackForNack);   
-    //console.log("send done 2: " + a);
   };
 
   this._onLocationSuccess = function(pos) {
@@ -158,9 +159,12 @@ var OWMWeather = function(options) {
   };
 
   this.appMessageHandler = function(dict) {
+    console.log('owm-weather: Got fetch request from C app (a)');
     if(dict.payload[this.getAppKey('Request')]) {
+      console.log('owm-weather: Got fetch request from C app (b)');
       this._apiKey = dict.payload[this.getAppKey('Request')];
       if(dict.payload[this.getAppKey('Segment')]) {
+        console.log('owm-weather: Got fetch request from C app (c)');
         this._segmentCount = dict.payload[this.getAppKey('Segment')];
       } 
       else {
@@ -176,6 +180,10 @@ var OWMWeather = function(options) {
           maximumAge: 60000
       });
     }
+    else
+      {
+        console.log('owm-weather: Got fetch request from C app (bad request)');
+      }
   };
 };
 

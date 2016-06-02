@@ -1,10 +1,12 @@
 {
     "appKeys": {
-        "message": 1,
+        "Reply": 2,
+        "Request": 1,
         "status": 0
     },
     "capabilities": [
-        ""
+        "location",
+        "health"
     ],
     "companyName": "asheppard@edisms.co.uk",
     "enableMultiJS": true,
