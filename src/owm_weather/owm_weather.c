@@ -17,7 +17,8 @@ typedef enum {
   OWMWeatherAppMessageKeySnow,
   OWMWeatherAppMessageKeyClouds,
   OWMWeatherAppMessageKeyBadKey,
-  OWMWeatherAppMessageKeyLocationUnavailable
+  OWMWeatherAppMessageKeyLocationUnavailable,
+  OWMWeatherAppMessageKeyError,
 } OWMWeatherAppMessageKey;
 
 //static OWMWeatherInfo *s_info;
@@ -39,9 +40,9 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   OWMWeatherInfo *info = 0;
   Tuple *reply_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyReply));
   
-  //if(reply_tuple) {
-  //  APP_LOG(APP_LOG_LEVEL_INFO, "Got reply with %ld", reply_tuple->value->int32);
-  //}
+  if(reply_tuple) {
+    APP_LOG(APP_LOG_LEVEL_INFO, "Got reply with %ld", reply_tuple->value->int32);
+  }
   
   if(reply_tuple && reply_tuple->value->int32 == 1) {
     Tuple *seg_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeySegment));
@@ -59,6 +60,9 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
     //Tuple *desc_short_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyDescriptionShort));
     //strncpy(info->description_short, desc_short_tuple->value->cstring, OWM_WEATHER_BUFFER_SIZE);
     //strncpy(info->description_short, "blank", OWM_WEATHER_BUFFER_SIZE);
+    
+    Tuple *name_short_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyName));
+    strncpy(info->name, name_short_tuple->value->cstring, OWM_WEATHER_BUFFER_SIZE);
 
     Tuple *temp_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyTempK));
     info->temp_k = temp_tuple->value->int32;
@@ -134,7 +138,7 @@ static bool fetch() {
     dict_write_cstring(out, 1, s_api_key);
   dict_write_int16(out, get_app_key(OWMWeatherAppMessageKeySegment), OWM_WEATHER_MAX_SEGMENT_COUNT);
 
-  //APP_LOG(APP_LOG_LEVEL_ERROR, "sent message");
+  APP_LOG(APP_LOG_LEVEL_ERROR, "sent message");
   result = app_message_outbox_send();
   if(result != APP_MSG_OK) {
     fail_and_callback();
@@ -166,6 +170,10 @@ void owm_weather_init_with_base_app_key(char *api_key, int base_app_key) {
 
 void owm_weather_init(char *api_key) {
   owm_weather_init_with_base_app_key(api_key, 0);
+  
+  app_message_deregister_callbacks();
+  app_message_register_inbox_received(inbox_received_handler);
+  app_message_open(2026, 656);
 }
 
 bool owm_weather_fetch(OWMWeatherCallback *callback) {
@@ -186,10 +194,6 @@ bool owm_weather_fetch(OWMWeatherCallback *callback) {
     s_callback(0, s_status);
     return false;
   }
-
-  app_message_deregister_callbacks();
-  app_message_register_inbox_received(inbox_received_handler);
-  app_message_open(2026, 656);
 
   return fetch();
 }
@@ -225,4 +229,35 @@ OWMWeatherInfo* owm_weather_peek_index(int index){
 int owm_weather_count()
 {
   return s_info_count;
+}
+
+const char* owm_weather_state(bool* ok)
+{
+  if (s_status == OWMWeatherStatusAvailable)
+  {
+    *ok = true;
+    return 0;
+  }
+  
+  *ok = false;
+  switch (s_status)
+  {
+    case OWMWeatherStatusNotYetFetched:
+        return "N Fetch";
+    case OWMWeatherStatusBluetoothDisconnected:
+        return "BT DISC";
+    case OWMWeatherStatusPending:
+        return "Pending";
+    case OWMWeatherStatusFailed:
+        return "S Failed";
+    case OWMWeatherStatusBuilding:
+        return "Building";
+    case OWMWeatherStatusAvailable:
+        return "Available";
+    case OWMWeatherStatusBadKey:
+        return "Bad Key";
+    case OWMWeatherStatusLocationUnavailable:
+        return "No Location";
+    }
+  return "unknown";
 }

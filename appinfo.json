@@ -29,6 +29,22 @@
     "resources": {
         "media": [
             {
+                "file": "images/pebble_battery_normal.png",
+                "name": "BATTERY_NORMAL",
+                "targetPlatforms": [
+                    "basalt"
+                ],
+                "type": "bitmap"
+            },
+            {
+                "file": "images/pebble_battery_charging.png",
+                "name": "BATTERY_CHARGING",
+                "targetPlatforms": [
+                    "basalt"
+                ],
+                "type": "bitmap"
+            },
+            {
                 "file": "images/pebble_battery_frame.png",
                 "name": "BATTERY_FRAME",
                 "targetPlatforms": [

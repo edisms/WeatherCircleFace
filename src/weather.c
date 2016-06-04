@@ -47,6 +47,18 @@ void weather_get_segment(int segment, int* temp, int* wind, int* rain, int* snow
   *cloud = owm->clouds;
 }
 
+const char *weather_location()
+{
+  bool ok;
+  const char *message = owm_weather_state(&ok);
+  if (ok)
+  {
+    OWMWeatherInfo* owm = owm_weather_peek_index(0);
+    return owm->name;
+  }
+  return message;
+}
+
 void weather_callback(int segment, OWMWeatherStatus status) {
   switch(status) {
     case OWMWeatherStatusAvailable:

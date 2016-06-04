@@ -7,6 +7,7 @@
 
 static Window *s_main_window;
 static TextLayer *s_time_layer;
+static TextLayer *s_date_layer;
 
 static void main_window_unload();
 static void update_time();
@@ -15,6 +16,7 @@ static void deinit();
 static void main_window_load(Window *window);
 static void main_window_unload(Window *window);
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed);
+static void bt_callback(bool connected);
 
 void update_time() {
   // Get a tm structure
@@ -26,8 +28,11 @@ void update_time() {
   strftime(s_buffer, sizeof(s_buffer), clock_is_24h_style() ?
                                           "%H:%M" : "%I:%M", tick_time);
 
+  static char s_date_buffer[11];
+  strftime(s_date_buffer, sizeof(s_date_buffer), "%d/%m/%y", tick_time);  
   // Display this time on the TextLayer
   text_layer_set_text(s_time_layer, s_buffer);
+  text_layer_set_text(s_date_layer, s_date_buffer);
 }
 
 void weather_callback()
@@ -82,7 +87,7 @@ void main_window_load(Window *window) {
 
   // Create the TextLayer with specific bounds
   s_time_layer = text_layer_create(
-      GRect(0, PBL_IF_ROUND_ELSE(58, 52), bounds.size.w, 50));
+      GRect(0, PBL_IF_ROUND_ELSE(65, 57), bounds.size.w, 50));
 
   // Improve the layout to be more like a watchface
   text_layer_set_background_color(s_time_layer, GColorClear);
@@ -93,7 +98,22 @@ void main_window_load(Window *window) {
   // Add it as a child layer to the Window's root layer
   layer_add_child(window_layer, text_layer_get_layer(s_time_layer));
   
+  // Create the TextLayer with specific bounds
+  s_date_layer = text_layer_create(
+      GRect(0, 87, bounds.size.w, 50));
+
+  // Improve the layout to be more like a watchface
+  text_layer_set_background_color(s_date_layer, GColorClear);
+  text_layer_set_text_color(s_date_layer, GColorBlack);
+  text_layer_set_font(s_date_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24 ));
+  text_layer_set_text_alignment(s_date_layer, GTextAlignmentCenter);
+
+  // Add it as a child layer to the Window's root layer
+  layer_add_child(window_layer, text_layer_get_layer(s_date_layer));  
+  
+  
   bt_monitor_init(window);
+  bt_connection_status_monitor(bt_callback);
   bat_monitor_init(window);
   health_monitor_init(window);
 }
@@ -101,21 +121,32 @@ void main_window_load(Window *window) {
 void main_window_unload(Window *window) {
   // Destroy TextLayer
   text_layer_destroy(s_time_layer);
+  text_layer_destroy(s_date_layer);
   bt_monitor_deinit(window);
   bat_monitor_deinit(window);
   health_monitor_deinit(window);
 }
 
-
+void bt_callback(bool connected)
+{
+  if (connected)
+  {
+    weather_refresh();
+    health_monitor_refreah();
+  }
+}
 void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   update_time();
-  if (units_changed == HOUR_UNIT)
+  
+  APP_LOG(APP_LOG_LEVEL_INFO, "tick_handler minutes %d, units %d", tick_time->tm_min, units_changed);
+  if (units_changed & HOUR_UNIT)
   {
     weather_refresh();
   }
-  //if (tick_time->tm_min % 5 == 0)
-  //{
-  //  update_weather();
-  //}
+  
+  if ((tick_time->tm_min % 5 == 0) && !weather_is_ready())
+  {
+    weather_refresh();
+  }
 }
 

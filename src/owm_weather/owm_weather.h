@@ -33,9 +33,9 @@ typedef struct {
   //! OpenWeather general description of the weather
   int condition_id;      
   //! Weather conditions string e.g: "Sky is clear"
-  char description[OWM_WEATHER_BUFFER_SIZE];
+  //char description[OWM_WEATHER_BUFFER_SIZE];
   //! Short conditions string e.g: "Clear"
-  char description_short[OWM_WEATHER_BUFFER_SIZE];
+  //char description_short[OWM_WEATHER_BUFFER_SIZE];
   //! Name of the location from the weather feed
   char name[OWM_WEATHER_BUFFER_SIZE];
   //! Temperature in degrees Kelvin, Celcius, and Farenheit
@@ -47,7 +47,7 @@ typedef struct {
   //! Wind speed in kph
   int wind_speed;
   //! Wind direction in meteorological degrees
-  int wind_direction;
+  //int wind_direction;
   //! Date that the data was received
   time_t timestamp;
   //! Date that the weather represents in unix time
@@ -103,3 +103,8 @@ OWMWeatherInfo* owm_weather_peek_index(int index);
 //! Peek at the current state of the weather library. 
 //! @return size of owm segments
 int owm_weather_count();
+
+//! Peek at the current state of the weather library. if not ok returns an error string
+//! @param ok returns true if state ok, false otherwise.
+//! @return error message
+const char* owm_weather_state(bool* ok); 

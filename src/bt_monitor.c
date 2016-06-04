@@ -4,6 +4,12 @@
 static BitmapLayer *s_connection_layer;
 static GBitmap *s_ok_bitmap;
 static GBitmap *s_nok_bitmap;
+static bt_callback_* s_cb;
+
+void bt_connection_status_monitor(bt_callback_ cb)
+{
+  s_cb = cb;
+}
 
 static void handle_bluetooth(bool connected) {
   //text_layer_set_text(s_connection_layer, connected ? "connected" : "disconnected");
@@ -12,6 +18,9 @@ static void handle_bluetooth(bool connected) {
       bitmap_layer_set_bitmap(s_connection_layer, s_ok_bitmap);
   else
       bitmap_layer_set_bitmap(s_connection_layer, s_nok_bitmap);
+  
+  if (s_cb)
+    s_cb(connected);
 }
 
 
@@ -21,33 +30,20 @@ void bt_monitor_init(Window *window) {
   
   s_ok_bitmap = gbitmap_create_with_resource(RESOURCE_ID_BLUETOOTH_OK);
   s_nok_bitmap= gbitmap_create_with_resource(RESOURCE_ID_BLUETOOTH_NOTOK);
+  
+  GRect bounds = gbitmap_get_bounds(s_ok_bitmap);
+  GRect placement; 
+  
+  placement.origin.x = (34 - bounds.size.w)/2;
+  placement.origin.y = (34 - bounds.size.h)/2;
+  placement.size.w = bounds.size.w;
+  placement.size.h = bounds.size.h;
 
-  s_connection_layer = bitmap_layer_create(gbitmap_get_bounds(s_ok_bitmap));
+  s_connection_layer = bitmap_layer_create(placement);
+  
   bitmap_layer_set_bitmap(s_connection_layer, s_ok_bitmap);
   bitmap_layer_set_compositing_mode(s_connection_layer, GCompOpSet);
   layer_add_child(window_layer, bitmap_layer_get_layer(s_connection_layer));
-  
-  
-  /*
-  
-  s_connection_layer = text_layer_create(GRect(0, 0, bounds.size.w, 34));
-  text_layer_set_text_color(s_connection_layer, GColorBlack);
-  text_layer_set_background_color(s_connection_layer, GColorClear);
-  text_layer_set_font(s_connection_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
-  text_layer_set_text_alignment(s_connection_layer, GTextAlignmentLeft);
-  */
-  
-  // Load the image data
-  //s_bitmap = gbitmap_create_with_resource(RESOURCE_ID_battery);
-  
-  // Get the bounds of the image
-  //GRect bitmap_bounds = gbitmap_get_bounds(s_bitmap);
-  
-  // Set the compositing mode (GCompOpSet is required for transparency)
-  //graphics_context_set_compositing_mode(ctx, GCompOpSet);
-  
-  // Draw the image
-  //graphics_draw_bitmap_in_rect(ctx, s_bitmap, bitmap_bounds);  
   
   handle_bluetooth(connection_service_peek_pebble_app_connection());
   
@@ -56,10 +52,14 @@ void bt_monitor_init(Window *window) {
   });
    
   layer_add_child(window_layer, bitmap_layer_get_layer(s_connection_layer));
+  
+  s_cb = 0;
 }
 
 
 void bt_monitor_deinit(Window *window) {
+  s_cb = 0;
+  
   connection_service_unsubscribe();
   bitmap_layer_destroy(s_connection_layer);
   // Destroy the image data

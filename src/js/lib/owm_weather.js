@@ -36,6 +36,7 @@ var OWMWeather = function(options) {
     'Clouds': 15,
     'BadKey': 16,
     'LocationUnavailable': 17,
+    'Error' : 18
   };
 
   this.getAppKey = function(keyName) {
@@ -116,7 +117,7 @@ var OWMWeather = function(options) {
         //'Description': json.list[0].weather[0].description,
         //'DescriptionShort': json.list[0].weather[0].main,
         'TempK': Math.round(json.list[c].main.temp),
-        //'Name': json.city.name,
+        'Name': json.city.name,
         //'Pressure': Math.round(json.list[c].main.pressure),
         'WindSpeed': Math.round(json.list[c].wind.speed*3.6),
         //'WindDirection': Math.round(json.list[c].wind.deg),
@@ -137,7 +138,7 @@ var OWMWeather = function(options) {
   this._onLocationSuccess = function(pos) {
     var url = 'http://api.openweathermap.org/data/2.5/forecast?lat=' +
       pos.coords.latitude + '&lon=' + pos.coords.longitude + '&appid=' + this._apiKey;
-    url = "http://api.openweathermap.org/data/2.5/forecast?q=London,uk&appid=f402bfb5a34389b2501c3e7007b46668";
+    //url = "http://api.openweathermap.org/data/2.5/forecast?q=London,uk&appid=f402bfb5a34389b2501c3e7007b46668";
     console.log('owm-weather: Location success. Contacting OpenWeatherMap.org...');
     console.log(url);
 

@@ -15,3 +15,5 @@ void weather_refresh();
 bool weather_is_ready();
   
 void weather_get_segment(int segment, int* temp, int* wind, int* rain, int* snow, int* cloud);  
+
+const char *weather_location();
