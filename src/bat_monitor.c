@@ -1,5 +1,6 @@
 #include <pebble.h>
 #include "bat_monitor.h"
+#include "logging.h"
 
 static GBitmap *s_battery_bitmap;
 static GBitmap *s_charging_bitmap;
@@ -43,7 +44,7 @@ void bat_update_proc(Layer *layer, GContext *ctx) {
   bounds.size.w = 30;
   bounds.size.h = 30;
   
-  APP_LOG(APP_LOG_LEVEL_DEBUG,"bat_update_proc %d,%d %d,%d",  s_bat_bounds.origin.x, 
+  APP_I_LOG(APP_LOG_LEVEL_DEBUG,"bat_update_proc %d,%d %d,%d",  s_bat_bounds.origin.x, 
           s_bat_bounds.origin.y,s_bat_bounds.size.w, s_bat_bounds.size.h);
   
   graphics_context_set_stroke_width(ctx, 6);

@@ -4,6 +4,7 @@
 #include "bt_monitor.h"
 #include "bat_monitor.h"
 #include "health_monitor.h"
+#include "logging.h"
 
 static Window *s_main_window;
 static TextLayer *s_time_layer;
@@ -37,7 +38,7 @@ void update_time() {
 
 void weather_callback()
 {
-  APP_LOG(APP_LOG_LEVEL_INFO, "weather_callback"); 
+  APP_I_LOG(APP_LOG_LEVEL_INFO, "weather_callback"); 
   redraw_weather();
 }
 
@@ -138,7 +139,7 @@ void bt_callback(bool connected)
 void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   update_time();
   
-  APP_LOG(APP_LOG_LEVEL_INFO, "tick_handler minutes %d, units %d", tick_time->tm_min, units_changed);
+  APP_I_LOG(APP_LOG_LEVEL_INFO, "tick_handler minutes %d, units %d", tick_time->tm_min, units_changed);
   if (units_changed & HOUR_UNIT)
   {
     weather_refresh();

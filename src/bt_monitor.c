@@ -1,6 +1,7 @@
 #include <pebble.h>
 #include "bt_monitor.h"
-//static TextLayer *s_connection_layer;
+#include "logging.h"
+
 static BitmapLayer *s_connection_layer;
 static GBitmap *s_ok_bitmap;
 static GBitmap *s_nok_bitmap;
@@ -12,8 +13,7 @@ void bt_connection_status_monitor(bt_callback_ cb)
 }
 
 static void handle_bluetooth(bool connected) {
-  //text_layer_set_text(s_connection_layer, connected ? "connected" : "disconnected");
-  APP_LOG(APP_LOG_LEVEL_DEBUG, connected ? "connected" : "disconnected");
+  APP_I_LOG(APP_LOG_LEVEL_DEBUG, connected ? "connected" : "disconnected");
   if (connected)
       bitmap_layer_set_bitmap(s_connection_layer, s_ok_bitmap);
   else
@@ -26,7 +26,6 @@ static void handle_bluetooth(bool connected) {
 
 void bt_monitor_init(Window *window) {
   Layer *window_layer = window_get_root_layer(window);
-  //GRect bounds = layer_get_frame(window_layer);
   
   s_ok_bitmap = gbitmap_create_with_resource(RESOURCE_ID_BLUETOOTH_OK);
   s_nok_bitmap= gbitmap_create_with_resource(RESOURCE_ID_BLUETOOTH_NOTOK);

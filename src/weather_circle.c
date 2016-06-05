@@ -1,6 +1,7 @@
 #include <pebble.h>
 #include "weather_circle.h"
 #include "weather.h"
+#include "logging.h"
 
 static void canvas_update_proc(Layer *layer, GContext *ctx);
 
@@ -14,7 +15,7 @@ static TextLayer *s_location_layer;
 
 void init_weather(Window* window){
   s_bounds_a = layer_get_bounds(window_get_root_layer(window));
-  //APP_LOG(APP_LOG_LEVEL_DEBUG, "Original bounds %d, %d -  %d, %d", s_bounds_a.origin.x,s_bounds_a.origin.y, 
+  //APP_I_LOG(APP_LOG_LEVEL_DEBUG, "Original bounds %d, %d -  %d, %d", s_bounds_a.origin.x,s_bounds_a.origin.y, 
   //        s_bounds_a.size.h,s_bounds_a.size.w);  
   
   // Create canvas layer
@@ -42,8 +43,6 @@ void init_weather(Window* window){
   s_bounds_d.origin.y += 5;
   s_bounds_d.size.h -= 10;
   s_bounds_d.size.w -= 10;
-  
-  //APP_LOG(APP_LOG_LEVEL_DEBUG, "New bounds %d, %d -  %d, %d", s_bounds.origin.x,s_bounds.origin.y, s_bounds.size.h,s_bounds.size.w);  
   
   // Assign the custom drawing procedure
   layer_set_update_proc(s_canvas_layer, canvas_update_proc);
@@ -91,7 +90,7 @@ void getSegmentData(int segment, int *temp, GColor *c_temp, int *rain, GColor *c
   weather_get_segment(0, &base_temp, &base_wind, &base_rain, &base_snow);  */   
   weather_get_segment(segment, &raw_temp, &raw_wind, &raw_rain, &raw_snow, &raw_cloud);    
   
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "seg %d, temp %d, wind %d, rain %d, cloud %d", segment, raw_temp, raw_wind, raw_rain, raw_cloud);
+  APP_I_LOG(APP_LOG_LEVEL_DEBUG, "seg %d, temp %d, wind %d, rain %d, cloud %d", segment, raw_temp, raw_wind, raw_rain, raw_cloud);
   
   *temp = 43;
   *rain = 45;
@@ -119,16 +118,18 @@ void getSegmentData(int segment, int *temp, GColor *c_temp, int *rain, GColor *c
  
   if (raw_rain < 1)
   {
-    *rain = 5;
+    *rain = 0;
   } else if (raw_rain < 2) {
-    *rain = 10;    
+    *rain = 5;    
   } else if (raw_rain < 4) {
-    *rain = 15;    
+    *rain = 10;    
   } else if (raw_rain < 8) {
-    *rain = 20;    
+    *rain = 15;    
   } else if (raw_rain < 16) {
-    *rain = 25;    
+    *rain = 20;    
   } else if (raw_rain < 32) {
+    *rain = 25;    
+  } else if (raw_rain < 48) {
     *rain = 30;    
   } else {
     *rain = 45;
@@ -136,40 +137,42 @@ void getSegmentData(int segment, int *temp, GColor *c_temp, int *rain, GColor *c
   c_rain->argb = GColorBlueARGB8;
   
   if (raw_wind < 1)
-    *wind = 5;
+    *wind = 0;
   else if (raw_wind < 5)
-    *wind = 10;
+    *wind = 5;
   else if (raw_wind < 11)
-    *wind = 15;
+    *wind = 10;
   else if (raw_wind < 19)
-    *wind = 20;
+    *wind = 15;
   else if (raw_wind < 28)
-    *wind = 25;
+    *wind = 20;
   else if (raw_wind < 38)
-    *wind = 30;
+    *wind = 25;
   else if (raw_wind < 49)
-    *wind = 35;
+    *wind = 30;
   else if (raw_wind < 61)
-    *wind = 40;
+    *wind = 35;
   else 
     *wind = 45;
   *c_wind = GColorOrange;
     
   if (raw_cloud < 10)
-    *cloud = 5;
+    *cloud = 0;
   else if (raw_cloud < 20)
-    *cloud = 10;
+    *cloud = 5;
   else if (raw_cloud < 30)
-    *cloud = 15;
+    *cloud = 10;
   else if (raw_cloud < 40)
-    *cloud = 20;
+    *cloud = 15;
   else if (raw_cloud < 50)
-    *cloud = 25;
+    *cloud = 20;
   else if (raw_cloud < 60)
-    *cloud = 30;
+    *cloud = 25;
   else if (raw_cloud < 70)
-    *cloud = 35;
+    *cloud = 30;
   else if (raw_cloud < 80)
+    *cloud = 35;
+  else if (raw_cloud < 90)
     *cloud = 40;
   else 
     *cloud = 45;  
@@ -182,7 +185,7 @@ void canvas_update_proc(Layer *layer, GContext *ctx) {
   //draw weather in 3 hour blocks
   if (!weather_is_ready())
   {
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "weather data not ready yet");
+    APP_I_LOG(APP_LOG_LEVEL_DEBUG, "weather data not ready yet");
     return;
   }
   
@@ -211,7 +214,7 @@ void canvas_update_proc(Layer *layer, GContext *ctx) {
     int point_l_c = point - (cloud +1)/2;
     int point_r_c = point_l_c + cloud;   
     
-    //APP_LOG(APP_LOG_LEVEL_DEBUG,"Temp %d %d-> %d (0x%x), Wind %d %d-> %d (0x%x), Rain %d %d-> %d (0x%x)",
+    //APP_I_LOG(APP_LOG_LEVEL_DEBUG,"Temp %d %d-> %d (0x%x), Wind %d %d-> %d (0x%x), Rain %d %d-> %d (0x%x)",
     //        temp, point_l_t, point_r_t, c_temp.argb, wind, point_l_w, point_r_w, c_wind.argb, rain, point_l_r, point_r_r, c_rain.argb);
     
     graphics_context_set_fill_color(ctx, c_temp);

@@ -1,6 +1,12 @@
+function LOG(x) {
+    //console.log(x);
+};
+
 var OWMWeather = function(options) {
   this._apiKey = '';
   this._segmentCount = 0;
+  
+
   
   this.timeConverter = function(UNIX_timestamp){
     var a = new Date(UNIX_timestamp * 1000);
@@ -57,38 +63,38 @@ var OWMWeather = function(options) {
 
   this._xhrWrapper = function(url, type, callback) {
     var xhr = new XMLHttpRequest();
-    console.log("request:" + url);
+    LOG("request:" + url);
     xhr.onload = function () {
-      console.log("callback received");
+      LOG("callback received");
       callback(xhr);
     };
     xhr.open(type, url);
     xhr.send();
   };
   
-    function callbackForAck(data)
+  function callbackForAck(data)
   {
-    console.log("callbackForAck: " + data);
+    LOG("callbackForAck: " + data);
   }
   
   function callbackForNack(data, error)
   {
-    console.log("callbackForNack: " + data);
-    console.log("callbackForNack: " + error);
+    LOG("callbackForNack: " + data);
+    LOG("callbackForNack: " + error);
     var propValue;
     for(var propName in data) {
         propValue = data[propName];
     
-        console.log(propName,propValue);
+        LOG(propName,propValue);
     }
   }
 
   this.sendToPebble = function(json) {
-    console.log("City:" + json.city.name);
+    LOG("City:" + json.city.name);
     var count = json.cnt;
     for (var c = 0; (c < count) && (c < 11); c++)
     {
-      //console.log("Weather: "+ c + " time " + this.timeConverter(json.list[c].dt) + 
+      //LOG("Weather: "+ c + " time " + this.timeConverter(json.list[c].dt) + 
       //            " type " + json.list[c].weather[0].id + ' clouds: ' + json.list[c].clouds.all + 
       //           " temp:" + json.list[c].main.temp +
       //            " wind:" + json.list[c].wind.speed);  
@@ -107,7 +113,7 @@ var OWMWeather = function(options) {
           snow = json.list[c].snow["3h"];
         }
       }  
-      //console.log("rain = " + rain + " snow " + snow);
+      //LOG("rain = " + rain + " snow " + snow);
   
       this.sendAppMessage({
         'Reply': 1,
@@ -127,7 +133,7 @@ var OWMWeather = function(options) {
       //}, callbackForAck, callbackForNack);      
       });  
     }
-    //console.log("send done");
+    //LOG("send done");
     this.sendAppMessage({
       'Reply': 2,
       'Segment':0
@@ -139,22 +145,22 @@ var OWMWeather = function(options) {
     var url = 'http://api.openweathermap.org/data/2.5/forecast?lat=' +
       pos.coords.latitude + '&lon=' + pos.coords.longitude + '&appid=' + this._apiKey;
     //url = "http://api.openweathermap.org/data/2.5/forecast?q=London,uk&appid=f402bfb5a34389b2501c3e7007b46668";
-    console.log('owm-weather: Location success. Contacting OpenWeatherMap.org...');
-    console.log(url);
+    LOG('owm-weather: Location success. Contacting OpenWeatherMap.org...');
+    LOG(url);
 
     this._xhrWrapper(url, 'GET', function(req) {
-      console.log('owm-weather: Got API response!');
+      LOG('owm-weather: Got API response!');
       if(req.status == 200) {
         this.sendToPebble(JSON.parse(req.response));
       } else {
-        console.log('owm-weather: Error fetching data (HTTP Status: ' + req.status + ')');
+        LOG('owm-weather: Error fetching data (HTTP Status: ' + req.status + ')');
         this.sendAppMessage({ 'BadKey': 1 });
       }
     }.bind(this));
   };
 
   this._onLocationError = function(err) {
-    console.log('owm-weather: Location error');
+    this.LOG('owm-weather: Location error');
     this.sendAppMessage({
       'LocationUnavailable': 1
     });

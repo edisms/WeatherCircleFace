@@ -1,5 +1,6 @@
 #include <pebble.h>
 #include "weather.h"
+#include "logging.h"
 
 #include "owm_weather/owm_weather.h"
 
@@ -77,25 +78,25 @@ void weather_callback(int segment, OWMWeatherStatus status) {
     }
       break;
     case OWMWeatherStatusBuilding:
-      APP_LOG(APP_LOG_LEVEL_INFO,  "OWMWeatherStatusBuilding");
+      APP_I_LOG(APP_LOG_LEVEL_INFO,  "OWMWeatherStatusBuilding");
       break;
     case OWMWeatherStatusNotYetFetched:
-      APP_LOG(APP_LOG_LEVEL_INFO,  "OWMWeatherStatusNotYetFetched");
+      APP_I_LOG(APP_LOG_LEVEL_INFO,  "OWMWeatherStatusNotYetFetched");
       break;
     case OWMWeatherStatusBluetoothDisconnected:
-      APP_LOG(APP_LOG_LEVEL_INFO,  "OWMWeatherStatusBluetoothDisconnected");
+      APP_I_LOG(APP_LOG_LEVEL_INFO,  "OWMWeatherStatusBluetoothDisconnected");
       break;
     case OWMWeatherStatusPending:
-      APP_LOG(APP_LOG_LEVEL_INFO, "OWMWeatherStatusPending");
+      APP_I_LOG(APP_LOG_LEVEL_INFO, "OWMWeatherStatusPending");
       break;
     case OWMWeatherStatusFailed:
-      APP_LOG(APP_LOG_LEVEL_INFO,  "OWMWeatherStatusFailed");
+      APP_I_LOG(APP_LOG_LEVEL_INFO,  "OWMWeatherStatusFailed");
       break;
     case OWMWeatherStatusBadKey:
-      APP_LOG(APP_LOG_LEVEL_INFO,  "OWMWeatherStatusBadKey");
+      APP_I_LOG(APP_LOG_LEVEL_INFO,  "OWMWeatherStatusBadKey");
       break;
     case OWMWeatherStatusLocationUnavailable:
-      APP_LOG(APP_LOG_LEVEL_INFO,  "OWMWeatherStatusLocationUnavailable");
+      APP_I_LOG(APP_LOG_LEVEL_INFO,  "OWMWeatherStatusLocationUnavailable");
       break;
   }
 }

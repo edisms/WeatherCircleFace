@@ -1,5 +1,5 @@
 #include "owm_weather.h"
-
+#include "logging.h"
 typedef enum {
   OWMWeatherAppMessageKeyRequest = 1,
   OWMWeatherAppMessageKeyReply,
@@ -41,7 +41,7 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   Tuple *reply_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyReply));
   
   if(reply_tuple) {
-    APP_LOG(APP_LOG_LEVEL_INFO, "Got reply with %ld", reply_tuple->value->int32);
+    APP_I_LOG(APP_LOG_LEVEL_INFO, "Got reply with %ld", reply_tuple->value->int32);
   }
   
   if(reply_tuple && reply_tuple->value->int32 == 1) {
@@ -120,7 +120,7 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
 }
 
 static void fail_and_callback() {
-  APP_LOG(APP_LOG_LEVEL_ERROR, "Failed to send request!");
+  APP_I_LOG(APP_LOG_LEVEL_ERROR, "Failed to send request!");
   s_status = OWMWeatherStatusFailed;
   s_callback(0, s_status);
 }
@@ -138,7 +138,7 @@ static bool fetch() {
     dict_write_cstring(out, 1, s_api_key);
   dict_write_int16(out, get_app_key(OWMWeatherAppMessageKeySegment), OWM_WEATHER_MAX_SEGMENT_COUNT);
 
-  APP_LOG(APP_LOG_LEVEL_ERROR, "sent message");
+  APP_I_LOG(APP_LOG_LEVEL_ERROR, "sent message");
   result = app_message_outbox_send();
   if(result != APP_MSG_OK) {
     fail_and_callback();
@@ -151,21 +151,16 @@ static bool fetch() {
 }
 
 void owm_weather_init_with_base_app_key(char *api_key, int base_app_key) {
-  //if(s_info) {
-  //  free(s_info);
-  //}
-
   s_base_app_key = base_app_key;
 
   if(!api_key) {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "API key was NULL!");
+    APP_I_LOG(APP_LOG_LEVEL_ERROR, "API key was NULL!");
     return;
   }
 
   strncpy(s_api_key, api_key, sizeof(s_api_key));
 
-  //s_info = (OWMWeatherInfo*)malloc(sizeof(OWMWeatherInfo));
-  s_status = OWMWeatherStatusNotYetFetched;
+   s_status = OWMWeatherStatusNotYetFetched;
 }
 
 void owm_weather_init(char *api_key) {
@@ -177,13 +172,9 @@ void owm_weather_init(char *api_key) {
 }
 
 bool owm_weather_fetch(OWMWeatherCallback *callback) {
-  /*if(!s_info) {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "OWM Weather library is not initialized!");
-    return false;
-  }*/
 
   if(!callback) {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "OWMWeatherCallback was NULL!");
+    APP_I_LOG(APP_LOG_LEVEL_ERROR, "OWMWeatherCallback was NULL!");
     return false;
   }
 

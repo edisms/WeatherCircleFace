@@ -7,6 +7,6 @@ Pebble.addEventListener('ready', function(e) {
 });
 
 Pebble.addEventListener('appmessage', function(e) {
-  console.log('appmessage: ' + JSON.stringify(e.payload));
+  //owmWeather.LOG('appmessage: ' + JSON.stringify(e.payload));
   owmWeather.appMessageHandler(e);
 });
