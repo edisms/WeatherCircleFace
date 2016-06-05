@@ -37,7 +37,7 @@ typedef struct {
   //! Short conditions string e.g: "Clear"
   //char description_short[OWM_WEATHER_BUFFER_SIZE];
   //! Name of the location from the weather feed
-  char name[OWM_WEATHER_BUFFER_SIZE];
+  //char name[OWM_WEATHER_BUFFER_SIZE];
   //! Temperature in degrees Kelvin, Celcius, and Farenheit
   int temp_k;
   int temp_c;
@@ -51,7 +51,7 @@ typedef struct {
   //! Date that the data was received
   time_t timestamp;
   //! Date that the weather represents in unix time
-  uint32_t forecast_time;
+  int forecast_time;
   //! % cloud cover
   int clouds;
   //! rain in mm
@@ -60,6 +60,12 @@ typedef struct {
   int snow;
   
 } OWMWeatherInfo;
+
+typedef struct {
+  char name[OWM_WEATHER_BUFFER_SIZE]; //! name of current location
+  int sunrise; //! unixtime sunrise
+  int sunset; //! unixtime sunset
+} OWMWeatherLocationInfo;
 
 //! Callback for a weather fetch
 //! @param segment The segment id for which data has been received
@@ -92,6 +98,11 @@ void owm_weather_deinit();
 //! @return first OWMWeatherInfo object, internally allocated.
 //! If NULL, owm_weather_init() has not been called.
 OWMWeatherInfo* owm_weather_peek();
+
+//! Peek at the current location state
+//! @return the OWMWeatherLocationInfo, internally allocated.
+//! If NULL, owm_weather_init() has not been called or the data is not ready.
+OWMWeatherLocationInfo* owm_weather_location_peek();
 
 //! Peek at the current state of the weather library. You should check the OWMWeatherStatus of the
 //! returned OWMWeatherInfo before accessing data members.

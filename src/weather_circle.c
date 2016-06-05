@@ -181,6 +181,53 @@ void getSegmentData(int segment, int *temp, GColor *c_temp, int *rain, GColor *c
 
 }
 
+
+static void sunstate(Layer *layer, GContext *ctx)
+{
+  int start = weather_get_segment_time(0);
+  int sunrise; 
+  int sunset;
+
+  weather_sun(&sunrise, &sunset);
+  
+  APP_I_LOG(APP_LOG_LEVEL_DEBUG, "Start %d, Sunrise in %d, sunset in %d", start, sunrise, sunset);
+  
+  // Standardize times, pull down to hours
+  if (start < sunrise)
+    sunrise = sunrise - start;
+  else
+    sunrise = start - sunrise;
+  
+  if (start < sunset)
+    sunset = (sunset - start);
+  else
+    sunset = start - sunset;
+  
+  start = 0;
+  sunset /= (60*60);
+  sunrise /= (60*60);
+  
+  APP_I_LOG(APP_LOG_LEVEL_DEBUG, "Sunrise in %d, sunset in %d", sunrise, sunset);
+  
+  if (sunrise < sunset)
+  {
+    graphics_context_set_fill_color(ctx, GColorPastelYellow);
+    graphics_fill_radial(ctx, s_bounds_a, GOvalScaleModeFitCircle, 20, DEG_TO_TRIGANGLE(sunrise*(360/24)), DEG_TO_TRIGANGLE(sunset*(360/24)));
+    graphics_context_set_fill_color(ctx, GColorLightGray);
+    graphics_fill_radial(ctx, s_bounds_a, GOvalScaleModeFitCircle, 20, DEG_TO_TRIGANGLE(sunset*(360/24)), DEG_TO_TRIGANGLE(360));
+    graphics_fill_radial(ctx, s_bounds_a, GOvalScaleModeFitCircle, 20, DEG_TO_TRIGANGLE(0), DEG_TO_TRIGANGLE(sunrise*(360/24)));
+  }
+  else
+  {
+    graphics_context_set_fill_color(ctx, GColorPastelYellow);
+    graphics_fill_radial(ctx, s_bounds_a, GOvalScaleModeFitCircle, 20, DEG_TO_TRIGANGLE(sunrise*(360/24)), DEG_TO_TRIGANGLE(360));
+    graphics_fill_radial(ctx, s_bounds_a, GOvalScaleModeFitCircle, 20, DEG_TO_TRIGANGLE(0), DEG_TO_TRIGANGLE(sunset*(360/24)));
+    graphics_context_set_fill_color(ctx, GColorLightGray);
+    graphics_fill_radial(ctx, s_bounds_a, GOvalScaleModeFitCircle, 20, DEG_TO_TRIGANGLE(sunset*(360/24)), DEG_TO_TRIGANGLE(sunrise*(360/24)));
+  }
+  
+}
+
 void canvas_update_proc(Layer *layer, GContext *ctx) {
   //draw weather in 3 hour blocks
   if (!weather_is_ready())
@@ -188,6 +235,8 @@ void canvas_update_proc(Layer *layer, GContext *ctx) {
     APP_I_LOG(APP_LOG_LEVEL_DEBUG, "weather data not ready yet");
     return;
   }
+  
+  sunstate(layer, ctx);
   
   int segment_size = 360/(24/3);
   

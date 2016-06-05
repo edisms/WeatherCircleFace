@@ -1,14 +1,14 @@
 #include "owm_weather.h"
 #include "logging.h"
 typedef enum {
-  OWMWeatherAppMessageKeyRequest = 1,
+  OWMWeatherAppMessageKeyRequest = 1, // framework
   OWMWeatherAppMessageKeyReply,
-  OWMWeatherAppMessageKeyTime,
+  
+  OWMWeatherAppMessageKeyTime = 20, // segment
   OWMWeatherAppMessageKeySegment,   
   OWMWeatherAppMessageKeyConditionId,   
   OWMWeatherAppMessageKeyDescription,
   OWMWeatherAppMessageKeyDescriptionShort,
-  OWMWeatherAppMessageKeyName,
   OWMWeatherAppMessageKeyTempK,
   OWMWeatherAppMessageKeyPressure,
   OWMWeatherAppMessageKeyWindSpeed,
@@ -16,10 +16,19 @@ typedef enum {
   OWMWeatherAppMessageKeyRain,
   OWMWeatherAppMessageKeySnow,
   OWMWeatherAppMessageKeyClouds,
-  OWMWeatherAppMessageKeyBadKey,
+  
+  OWMWeatherAppMessageKeyName = 50, // location
+  OWMWeatherAppMessageKeySunrise,
+  OWMWeatherAppMessageKeySunset,
+  
+  OWMWeatherAppMessageKeyBadKey = 100, // error handling
   OWMWeatherAppMessageKeyLocationUnavailable,
   OWMWeatherAppMessageKeyError,
 } OWMWeatherAppMessageKey;
+
+#define REPLY_SEGMENT 1
+#define REPLY_LOCATION 2
+#define REPLY_DONE 100
 
 //static OWMWeatherInfo *s_info;
 static OWMWeatherCallback *s_callback;
@@ -28,6 +37,7 @@ static OWMWeatherStatus s_status;
 static int s_info_count = 0;
 
 static OWMWeatherInfo s_info_segments[OWM_WEATHER_MAX_SEGMENT_COUNT]; //! database of weather information
+static OWMWeatherLocationInfo s_info_location;
 
 static char s_api_key[33];
 static int s_base_app_key = 0;
@@ -44,14 +54,14 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
     APP_I_LOG(APP_LOG_LEVEL_INFO, "Got reply with %ld", reply_tuple->value->int32);
   }
   
-  if(reply_tuple && reply_tuple->value->int32 == 1) {
+  if(reply_tuple && reply_tuple->value->int32 == REPLY_SEGMENT) {
     Tuple *seg_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeySegment));
     info = &s_info_segments[seg_tuple->value->int32];
     
     info->segment = seg_tuple->value->int32;
 
-    //Tuple *time_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyTime));
-    //info->forecast_time = time_tuple->value->uint32;
+    Tuple *time_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyTime));
+    info->forecast_time = time_tuple->value->uint32;
     
     //Tuple *desc_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyDescription));
     //strncpy(info->description, "blank", OWM_WEATHER_BUFFER_SIZE);
@@ -60,9 +70,6 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
     //Tuple *desc_short_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyDescriptionShort));
     //strncpy(info->description_short, desc_short_tuple->value->cstring, OWM_WEATHER_BUFFER_SIZE);
     //strncpy(info->description_short, "blank", OWM_WEATHER_BUFFER_SIZE);
-    
-    Tuple *name_short_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyName));
-    strncpy(info->name, name_short_tuple->value->cstring, OWM_WEATHER_BUFFER_SIZE);
 
     Tuple *temp_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyTempK));
     info->temp_k = temp_tuple->value->int32;
@@ -100,21 +107,40 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
     }
   }
   
-  if(reply_tuple && reply_tuple->value->int32 == 2) {
+
+  if(reply_tuple && reply_tuple->value->int32 == REPLY_LOCATION) {
+    Tuple *name_short_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyName));
+    strncpy(s_info_location.name, name_short_tuple->value->cstring, OWM_WEATHER_BUFFER_SIZE);
+    
+    Tuple *sunrise_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeySunrise));
+    s_info_location.sunrise = sunrise_tuple->value->int32; 
+    
+    Tuple *sunset_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeySunset));
+    s_info_location.sunset = sunset_tuple->value->int32; 
+    
+    APP_I_LOG(APP_LOG_LEVEL_INFO, "name %s, sunrise %d, sunset %d", s_info_location.name, s_info_location.sunrise, s_info_location.sunset);
+    
+  }
+  
+  if(reply_tuple && reply_tuple->value->int32 == REPLY_DONE) {
     s_status = OWMWeatherStatusAvailable;
     app_message_deregister_callbacks();
-    s_callback(0, s_status);
+    if (s_callback)
+      s_callback(0, s_status);
   }
+  
   
   Tuple *err_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyBadKey));
   if(err_tuple) {
     s_status = OWMWeatherStatusBadKey;
+    app_message_deregister_callbacks();
     s_callback(0, s_status);
   }
 
   err_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyLocationUnavailable));
   if(err_tuple) {
     s_status = OWMWeatherStatusLocationUnavailable;
+    app_message_deregister_callbacks();
     s_callback(0, s_status);
   }
 }
@@ -201,6 +227,14 @@ OWMWeatherInfo* owm_weather_peek() {
   }
   return NULL;
 }
+
+OWMWeatherLocationInfo* owm_weather_location_peek() {
+  if ( s_status == OWMWeatherStatusAvailable){
+    return &s_info_location;
+  }
+  return NULL;
+}
+
 
 //! Peek at the current state of the weather library. You should check the OWMWeatherStatus of the
 //! returned OWMWeatherInfo before accessing data members.

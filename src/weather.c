@@ -54,10 +54,22 @@ const char *weather_location()
   const char *message = owm_weather_state(&ok);
   if (ok)
   {
-    OWMWeatherInfo* owm = owm_weather_peek_index(0);
+    OWMWeatherLocationInfo* owm = owm_weather_location_peek();
     return owm->name;
   }
   return message;
+}
+
+bool weather_sun(int* rise, int *set){
+  bool ok;
+  owm_weather_state(&ok);
+  if (ok)
+  {
+    OWMWeatherLocationInfo* owm = owm_weather_location_peek();
+    *rise = owm->sunrise;
+    *set = owm->sunset;
+  }
+  return ok;  
 }
 
 void weather_callback(int segment, OWMWeatherStatus status) {
@@ -104,5 +116,11 @@ void weather_callback(int segment, OWMWeatherStatus status) {
 bool weather_is_ready()
 {
   return s_ready;
+}
+
+int weather_get_segment_time(int segment)
+{
+  OWMWeatherInfo* owm = owm_weather_peek_index(segment);
+  return owm->forecast_time;
 }
 

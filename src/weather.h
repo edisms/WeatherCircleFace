@@ -16,4 +16,8 @@ bool weather_is_ready();
   
 void weather_get_segment(int segment, int* temp, int* wind, int* rain, int* snow, int* cloud);  
 
+int weather_get_segment_time(int segment);
+
 const char *weather_location();
+
+bool weather_sun(int* rise, int* set);
