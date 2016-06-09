@@ -40,7 +40,7 @@ void weather_refresh()
   
 void weather_get_segment(int segment, int* temp, int* wind, int* rain, int* snow, int* cloud)
 {
-  OWMWeatherInfo* owm = owm_weather_peek_index(segment);
+  const OWMWeatherInfo* owm = owm_weather_peek_index(segment);
   *temp = owm->temp_c;
   *wind = owm->wind_speed;
   *rain = owm->rain;
@@ -54,9 +54,11 @@ const char *weather_location()
   const char *message = owm_weather_state(&ok);
   if (ok)
   {
-    OWMWeatherLocationInfo* owm = owm_weather_location_peek();
+    const OWMWeatherLocationInfo* owm = owm_weather_location_peek();
+    APP_I_LOG(APP_LOG_LEVEL_DEBUG, "Peeked location %s", owm->name);
     return owm->name;
   }
+  APP_I_LOG(APP_LOG_LEVEL_DEBUG, "No name?");
   return message;
 }
 
@@ -65,7 +67,7 @@ bool weather_sun(int* rise, int *set){
   owm_weather_state(&ok);
   if (ok)
   {
-    OWMWeatherLocationInfo* owm = owm_weather_location_peek();
+    const OWMWeatherLocationInfo* owm = owm_weather_location_peek();
     *rise = owm->sunrise;
     *set = owm->sunset;
   }
@@ -120,7 +122,7 @@ bool weather_is_ready()
 
 int weather_get_segment_time(int segment)
 {
-  OWMWeatherInfo* owm = owm_weather_peek_index(segment);
+  const OWMWeatherInfo* owm = owm_weather_peek_index(segment);
   return owm->forecast_time;
 }
 

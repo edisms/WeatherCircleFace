@@ -88,7 +88,7 @@ void main_window_load(Window *window) {
 
   // Create the TextLayer with specific bounds
   s_time_layer = text_layer_create(
-      GRect(0, PBL_IF_ROUND_ELSE(65, 57), bounds.size.w, 50));
+      GRect(0, 65, bounds.size.w, 50));
 
   // Improve the layout to be more like a watchface
   text_layer_set_background_color(s_time_layer, GColorClear);
@@ -101,7 +101,7 @@ void main_window_load(Window *window) {
   
   // Create the TextLayer with specific bounds
   s_date_layer = text_layer_create(
-      GRect(0, 87, bounds.size.w, 50));
+      GRect(0, 92, bounds.size.w, 50));
 
   // Improve the layout to be more like a watchface
   text_layer_set_background_color(s_date_layer, GColorClear);

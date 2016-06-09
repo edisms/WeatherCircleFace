@@ -6,6 +6,7 @@
 static void canvas_update_proc(Layer *layer, GContext *ctx);
 
 static Layer *s_canvas_layer;
+static GRect s_bounds;
 static GRect s_bounds_a;
 static GRect s_bounds_b;
 static GRect s_bounds_c;
@@ -14,7 +15,8 @@ static GRect s_bounds_d;
 static TextLayer *s_location_layer;
 
 void init_weather(Window* window){
-  s_bounds_a = layer_get_bounds(window_get_root_layer(window));
+  s_bounds = layer_get_bounds(window_get_root_layer(window));
+  s_bounds_a = s_bounds;
   //APP_I_LOG(APP_LOG_LEVEL_DEBUG, "Original bounds %d, %d -  %d, %d", s_bounds_a.origin.x,s_bounds_a.origin.y, 
   //        s_bounds_a.size.h,s_bounds_a.size.w);  
   
@@ -54,11 +56,12 @@ void init_weather(Window* window){
   // add the current location
   GRect b = layer_get_bounds(window_get_root_layer(window));
   s_location_layer = text_layer_create(
-      GRect((b.size.w-70)/2, 47, 70, 20));
+      GRect((b.size.w-70)/2, 45, 70, 40));
   text_layer_set_background_color(s_location_layer, GColorClear);
   text_layer_set_text_color(s_location_layer, GColorBlack);
   text_layer_set_font(s_location_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14 ));
   text_layer_set_text_alignment(s_location_layer, GTextAlignmentCenter);  
+  text_layer_set_overflow_mode(s_location_layer,GTextOverflowModeTrailingEllipsis);
   
   layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_location_layer));
   
@@ -181,7 +184,7 @@ void getSegmentData(int segment, int *temp, GColor *c_temp, int *rain, GColor *c
 
 }
 
-
+//#define MINUTES_PER_DAY (24*60)
 static void sunstate(Layer *layer, GContext *ctx)
 {
   int start = weather_get_segment_time(0);
@@ -192,38 +195,36 @@ static void sunstate(Layer *layer, GContext *ctx)
   
   APP_I_LOG(APP_LOG_LEVEL_DEBUG, "Start %d, Sunrise in %d, sunset in %d", start, sunrise, sunset);
   
-  // Standardize times, pull down to hours
-  if (start < sunrise)
-    sunrise = sunrise - start;
-  else
-    sunrise = start - sunrise;
+  sunset -= start;
+  sunrise -= start;
+  sunset /= (60); // convert to minutes
+  sunrise /= (60);
   
-  if (start < sunset)
-    sunset = (sunset - start);
-  else
-    sunset = start - sunset;
+  sunrise -= 90; // apply 90 minute offset, to line up with 'start' line
+  sunset -= 90;
   
-  start = 0;
-  sunset /= (60*60);
-  sunrise /= (60*60);
+  if (sunset < 0)
+    sunset+=24*60;
+  if (sunrise < 0)
+    sunrise+= 24*60;
   
   APP_I_LOG(APP_LOG_LEVEL_DEBUG, "Sunrise in %d, sunset in %d", sunrise, sunset);
   
   if (sunrise < sunset)
   {
     graphics_context_set_fill_color(ctx, GColorPastelYellow);
-    graphics_fill_radial(ctx, s_bounds_a, GOvalScaleModeFitCircle, 20, DEG_TO_TRIGANGLE(sunrise*(360/24)), DEG_TO_TRIGANGLE(sunset*(360/24)));
+    graphics_fill_radial(ctx, s_bounds_a, GOvalScaleModeFitCircle, 20, DEG_TO_TRIGANGLE(sunrise*360/MINUTES_PER_DAY), DEG_TO_TRIGANGLE(sunset*360/MINUTES_PER_DAY));
     graphics_context_set_fill_color(ctx, GColorLightGray);
-    graphics_fill_radial(ctx, s_bounds_a, GOvalScaleModeFitCircle, 20, DEG_TO_TRIGANGLE(sunset*(360/24)), DEG_TO_TRIGANGLE(360));
-    graphics_fill_radial(ctx, s_bounds_a, GOvalScaleModeFitCircle, 20, DEG_TO_TRIGANGLE(0), DEG_TO_TRIGANGLE(sunrise*(360/24)));
+    graphics_fill_radial(ctx, s_bounds_a, GOvalScaleModeFitCircle, 20, DEG_TO_TRIGANGLE(sunset*360/MINUTES_PER_DAY), DEG_TO_TRIGANGLE(360));
+    graphics_fill_radial(ctx, s_bounds_a, GOvalScaleModeFitCircle, 20, DEG_TO_TRIGANGLE(0), DEG_TO_TRIGANGLE(sunrise*360/MINUTES_PER_DAY));
   }
   else
   {
     graphics_context_set_fill_color(ctx, GColorPastelYellow);
-    graphics_fill_radial(ctx, s_bounds_a, GOvalScaleModeFitCircle, 20, DEG_TO_TRIGANGLE(sunrise*(360/24)), DEG_TO_TRIGANGLE(360));
-    graphics_fill_radial(ctx, s_bounds_a, GOvalScaleModeFitCircle, 20, DEG_TO_TRIGANGLE(0), DEG_TO_TRIGANGLE(sunset*(360/24)));
+    graphics_fill_radial(ctx, s_bounds_a, GOvalScaleModeFitCircle, 20, DEG_TO_TRIGANGLE(sunrise*360/MINUTES_PER_DAY), DEG_TO_TRIGANGLE(360));
+    graphics_fill_radial(ctx, s_bounds_a, GOvalScaleModeFitCircle, 20, DEG_TO_TRIGANGLE(0), DEG_TO_TRIGANGLE(sunset*360/MINUTES_PER_DAY));
     graphics_context_set_fill_color(ctx, GColorLightGray);
-    graphics_fill_radial(ctx, s_bounds_a, GOvalScaleModeFitCircle, 20, DEG_TO_TRIGANGLE(sunset*(360/24)), DEG_TO_TRIGANGLE(sunrise*(360/24)));
+    graphics_fill_radial(ctx, s_bounds_a, GOvalScaleModeFitCircle, 20, DEG_TO_TRIGANGLE(sunset*360/MINUTES_PER_DAY), DEG_TO_TRIGANGLE(sunrise*360/MINUTES_PER_DAY));
   }
   
 }
@@ -277,16 +278,33 @@ void canvas_update_proc(Layer *layer, GContext *ctx) {
     
     graphics_context_set_stroke_width(ctx, 2);
     graphics_context_set_stroke_color(ctx, GColorBlack);
-    GPoint p0,p1;
+    /*GPoint p0,p1;
     p0.x = 43;
     p0.y = 18;
     p1.x = 52;
     p1.y = 37;
     
-    graphics_draw_line(ctx, p0, p1);
+    graphics_draw_line(ctx, p0, p1);*/
+    
+    // the first segment starts at (15*360/16), compare 'now' against first segments time and find angle for 'now'.
+    int nowDelta = (time(0) - weather_get_segment_time(0)) / SECONDS_PER_MINUTE;
+    int angle = (nowDelta-90)*360/MINUTES_PER_DAY;
+    if (angle < 0)
+      angle += 360;
+    
+    graphics_context_set_fill_color(ctx, GColorBlack);
+  
+    int trigangle = DEG_TO_TRIGANGLE(angle);
+    int line_width_trigangle = 500;
+    // draw a very narrow radial (it's just a line)
+    graphics_fill_radial(ctx, s_bounds, GOvalScaleModeFitCircle, 24,
+      trigangle - line_width_trigangle, trigangle);
+    
+    APP_I_LOG(APP_LOG_LEVEL_DEBUG, weather_location());
     
     text_layer_set_text(s_location_layer, weather_location());
-    
+    //text_layer_set_text(s_location_layer, "royal borough of windsor and maidenhead");
+
   }
 }
   

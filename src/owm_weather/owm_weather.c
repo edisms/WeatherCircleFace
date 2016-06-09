@@ -34,7 +34,12 @@ typedef enum {
 static OWMWeatherCallback *s_callback;
 static OWMWeatherStatus s_status;
 
+static bool s_dataBuilt = false;
+
 static int s_info_count = 0;
+
+static OWMWeatherInfo s_info_segments_building[OWM_WEATHER_MAX_SEGMENT_COUNT]; //! database of weather information
+static OWMWeatherLocationInfo s_info_location_building;
 
 static OWMWeatherInfo s_info_segments[OWM_WEATHER_MAX_SEGMENT_COUNT]; //! database of weather information
 static OWMWeatherLocationInfo s_info_location;
@@ -56,12 +61,19 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   
   if(reply_tuple && reply_tuple->value->int32 == REPLY_SEGMENT) {
     Tuple *seg_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeySegment));
-    info = &s_info_segments[seg_tuple->value->int32];
+    if (seg_tuple->value->int32 >= OWM_WEATHER_MAX_SEGMENT_COUNT)
+    {
+      APP_I_LOG(APP_LOG_LEVEL_INFO, "Out of range segment %ld", seg_tuple->value->int32);
+      return;
+    }
+    info = &s_info_segments_building[seg_tuple->value->int32];
     
     info->segment = seg_tuple->value->int32;
 
     Tuple *time_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyTime));
-    info->forecast_time = time_tuple->value->uint32;
+    info->forecast_time = time_tuple->value->uint32 - SECONDS_PER_MINUTE*90;  
+    // forcast is for 3 hours centred on a time point
+    // shift back 90 minutes to find the 'start' of the segment. 
     
     //Tuple *desc_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyDescription));
     //strncpy(info->description, "blank", OWM_WEATHER_BUFFER_SIZE);
@@ -110,23 +122,42 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
 
   if(reply_tuple && reply_tuple->value->int32 == REPLY_LOCATION) {
     Tuple *name_short_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyName));
-    strncpy(s_info_location.name, name_short_tuple->value->cstring, OWM_WEATHER_BUFFER_SIZE);
+    strncpy(s_info_location_building.name, name_short_tuple->value->cstring, OWM_WEATHER_NAME_BUFFER_SIZE);
     
     Tuple *sunrise_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeySunrise));
-    s_info_location.sunrise = sunrise_tuple->value->int32; 
+    s_info_location_building.sunrise = sunrise_tuple->value->int32; 
     
     Tuple *sunset_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeySunset));
-    s_info_location.sunset = sunset_tuple->value->int32; 
+    s_info_location_building.sunset = sunset_tuple->value->int32; 
     
-    APP_I_LOG(APP_LOG_LEVEL_INFO, "name %s, sunrise %d, sunset %d", s_info_location.name, s_info_location.sunrise, s_info_location.sunset);
+    APP_I_LOG(APP_LOG_LEVEL_INFO, "name %s, sunrise %d, sunset %d", s_info_location_building.name, s_info_location_building.sunrise, s_info_location_building.sunset);
     
   }
   
   if(reply_tuple && reply_tuple->value->int32 == REPLY_DONE) {
     s_status = OWMWeatherStatusAvailable;
     app_message_deregister_callbacks();
+    
+    APP_I_LOG(APP_LOG_LEVEL_INFO, "name %s, sunrise %d, sunset %d", s_info_location.name, s_info_location.sunrise, s_info_location.sunset);
+    
+    /// the first segment has a 'now' time, fix it against the second.
+    s_info_segments_building[0].forecast_time = s_info_segments_building[1].forecast_time - 180*SECONDS_PER_MINUTE;
+    
+    // now, if the second segment starts before 'now', move the segments back.
+    if (s_info_segments_building[1].forecast_time < time(NULL))
+    {
+      memcpy(&s_info_segments_building[0], &s_info_segments_building[1], sizeof(OWMWeatherInfo) * (OWM_WEATHER_MAX_SEGMENT_COUNT - 1));
+    }
+    
+    memcpy(&s_info_segments[0], &s_info_segments_building[0], sizeof(OWMWeatherInfo) * (OWM_WEATHER_MAX_SEGMENT_COUNT));
+    s_info_location = s_info_location_building;
+    
+    s_dataBuilt = true;
+    
+    APP_I_LOG(APP_LOG_LEVEL_INFO, "name %s, sunrise %d, sunset %d", s_info_location.name, s_info_location.sunrise, s_info_location.sunset);
     if (s_callback)
       s_callback(0, s_status);
+    APP_I_LOG(APP_LOG_LEVEL_INFO, "name %s, sunrise %d, sunset %d", s_info_location.name, s_info_location.sunrise, s_info_location.sunset);
   }
   
   
@@ -139,6 +170,14 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
 
   err_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyLocationUnavailable));
   if(err_tuple) {
+    s_status = OWMWeatherStatusLocationUnavailable;
+    app_message_deregister_callbacks();
+    s_callback(0, s_status);
+  }
+  
+  err_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyError));
+  if(err_tuple) {
+    APP_I_LOG(APP_LOG_LEVEL_ERROR, err_tuple->value->cstring);
     s_status = OWMWeatherStatusLocationUnavailable;
     app_message_deregister_callbacks();
     s_callback(0, s_status);
@@ -221,17 +260,19 @@ void owm_weather_deinit() {
 
 }
 
-OWMWeatherInfo* owm_weather_peek() {
-  if ( s_status == OWMWeatherStatusAvailable){
+const OWMWeatherInfo* owm_weather_peek() {
+  if ( s_dataBuilt){
     return &s_info_segments[0];
   }
   return NULL;
 }
 
-OWMWeatherLocationInfo* owm_weather_location_peek() {
-  if ( s_status == OWMWeatherStatusAvailable){
+const OWMWeatherLocationInfo* owm_weather_location_peek() {
+
+  if ( s_dataBuilt){
     return &s_info_location;
   }
+  APP_I_LOG(APP_LOG_LEVEL_ERROR, "Not available");
   return NULL;
 }
 
@@ -241,8 +282,8 @@ OWMWeatherLocationInfo* owm_weather_location_peek() {
 //! @param index the index of the weather info to read
 //! @return OWMWeatherInfo object, internally allocated.
 //! If NULL, owm_weather_init() has not been called.
-OWMWeatherInfo* owm_weather_peek_index(int index){
-  if ( s_status == OWMWeatherStatusAvailable){
+const OWMWeatherInfo* owm_weather_peek_index(int index){
+  if ( s_dataBuilt){
     if (index <= s_info_count)
       return &s_info_segments[index];
   }
@@ -258,7 +299,7 @@ int owm_weather_count()
 
 const char* owm_weather_state(bool* ok)
 {
-  if (s_status == OWMWeatherStatusAvailable)
+  if (s_dataBuilt)
   {
     *ok = true;
     return 0;

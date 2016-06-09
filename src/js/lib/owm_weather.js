@@ -1,6 +1,6 @@
 function LOG(x) {
     console.log(x);
-};
+}
 
 var OWMWeather = function(options) {
   this._apiKey = '';
@@ -110,66 +110,118 @@ var OWMWeather = function(options) {
   };
   
   this.sendToPebbleWeather = function(json) {
-    LOG("City:" + json.city.name);
-    var count = json.cnt;
-    for (var c = 0; (c < count) && (c < 11); c++)
-    {
-      //LOG("Weather: "+ c + " time " + this.timeConverter(json.list[c].dt) + 
-      //            " type " + json.list[c].weather[0].id + ' clouds: ' + json.list[c].clouds.all + 
-      //           " temp:" + json.list[c].main.temp +
-      //            " wind:" + json.list[c].wind.speed);  
-            
-      var rain = 0;
-      if (json.list[c].hasOwnProperty("rain"))
-      {      
-        if (json.list[c].rain.hasOwnProperty("3h")) {
-          rain = json.list[c].rain["3h"];
-        }
-      }
-      var snow = 0;
-      if (json.list[c].hasOwnProperty("snow"))
+    try {
+      LOG("City:" + json.city.name);
+      var count = json.cnt;
+      for (var c = 0; (c < count) && (c < 11); c++)
       {
-        if (json.list[c].snow.hasOwnProperty("3h")) {
-          snow = json.list[c].snow["3h"];
+        //LOG("Weather: "+ c + " time " + this.timeConverter(json.list[c].dt) + 
+        //            " type " + json.list[c].weather[0].id + ' clouds: ' + json.list[c].clouds.all + 
+        //           " temp:" + json.list[c].main.temp +
+        //            " wind:" + json.list[c].wind.speed);  
+              
+        var rain = 0;
+        if (json.list[c].hasOwnProperty("rain"))
+        {      
+          if (json.list[c].rain.hasOwnProperty("3h")) {
+            rain = json.list[c].rain["3h"];
+          }
         }
-      }  
-      //LOG("rain = " + rain + " snow " + snow);
+        var snow = 0;
+        if (json.list[c].hasOwnProperty("snow"))
+        {
+          if (json.list[c].snow.hasOwnProperty("3h")) {
+            snow = json.list[c].snow["3h"];
+          }
+        }  
+        //LOG("rain = " + rain + " snow " + snow);
+    
+        this.sendAppMessage({
+          'Reply': this.REPLY_SEGMENT,
+          'Time': json.list[c].dt,
+          'Segment': c +1,
+          'ConditionId': json.list[c].weather[0].id,
+          //'Description': json.list[0].weather[0].description,
+          //'DescriptionShort': json.list[0].weather[0].main,
+          'TempK': Math.round(json.list[c].main.temp),
   
-      this.sendAppMessage({
-        'Reply': this.REPLY_SEGMENT,
-        'Time': json.list[c].dt,
-        'Segment': c,
-        'ConditionId': json.list[c].weather[0].id,
-        //'Description': json.list[0].weather[0].description,
-        //'DescriptionShort': json.list[0].weather[0].main,
-        'TempK': Math.round(json.list[c].main.temp),
-
-        //'Pressure': Math.round(json.list[c].main.pressure),
-        'WindSpeed': Math.round(json.list[c].wind.speed*3.6),
-        //'WindDirection': Math.round(json.list[c].wind.deg),
-        'Rain': Math.round(rain),
-        'Snow' : Math.round(snow),
-        'Clouds' : json.list[c].clouds.all
-      }, callbackForAck, callbackForNack);      
+          //'Pressure': Math.round(json.list[c].main.pressure),
+          'WindSpeed': Math.round(json.list[c].wind.speed*3.6),
+          //'WindDirection': Math.round(json.list[c].wind.deg),
+          'Rain': Math.round(rain),
+          'Snow' : Math.round(snow),
+          'Clouds' : json.list[c].clouds.all
+        }, callbackForAck, callbackForNack);      
+      }
+      this.forcast_done = true;
+  
+      this.notifyDone();  
     }
-    this.forcast_done = true;
+    catch(err) {
 
-    this.notifyDone();  
+      LOG("send error");
+      this.sendAppMessage({
+        'Error': "failed to parse XML forecast",
+        }, callbackForAck, callbackForNack); 
+    }      
+    
   };
   
   this.sendToPebbleLocation = function(json) {
-    LOG("City:" + json.name);
-    LOG(json.sys.sunrise);
-    LOG(json.sys.sunset);
+    try {
+      LOG("City:" + json.name);
+      LOG(json.sys.sunrise);
+      LOG(json.sys.sunset);
     
-    this.sendAppMessage({
-      'Reply': this.REPLY_LOCATION,
-      'Name': json.name,
-      'Sunrise': Math.round(json.sys.sunrise),
-      'Sunset': Math.round(json.sys.sunset) }, callbackForAck, callbackForNack);
+      var rain = 0;
+      if (json.hasOwnProperty("rain"))
+      {      
+        if (json.rain.hasOwnProperty("3h")) {
+            rain = json.rain["3h"];
+        }
+      }
+      var snow = 0;
+      if (json.hasOwnProperty("snow"))
+      {
+        if (json.snow.hasOwnProperty("3h")) {
+          snow = json.snow["3h"];
+        }
+      }  
+      LOG("rain = " + rain + " snow " + snow);
+    
+      this.sendAppMessage({
+        'Reply': this.REPLY_SEGMENT,
+        'Time': json.dt,
+        'Segment': 0,
+        'ConditionId': json.weather[0].id,
+        //'Description': json.list[0].weather[0].description,
+        //'DescriptionShort': json.list[0].weather[0].main,
+        'TempK': Math.round(json.main.temp),
+  
+        //'Pressure': Math.round(json.list[c].main.pressure),
+        'WindSpeed': Math.round(json.wind.speed*3.6),
+        //'WindDirection': Math.round(json.list[c].wind.deg),
+        'Rain': Math.round(rain),
+        'Snow' : Math.round(snow),
+        'Clouds' : json.clouds.all
+      }, callbackForAck, callbackForNack);      
+  
+      this.sendAppMessage({
+        'Reply': this.REPLY_LOCATION,
+        'Name': json.name,
+        'Sunrise': Math.round(json.sys.sunrise),
+        'Sunset': Math.round(json.sys.sunset) }, callbackForAck, callbackForNack);
+  
+      this.weather_done = true;
+      this.notifyDone();  
+      }
+    catch(err) {
 
-    this.weather_done = true;
-    this.notifyDone();  
+      LOG("send error");
+      this.sendAppMessage({
+        'Error': "failed to parse XML weather",
+        }, callbackForAck, callbackForNack); 
+    } 
   };
 
 
@@ -178,7 +230,8 @@ var OWMWeather = function(options) {
       pos.coords.latitude + '&lon=' + pos.coords.longitude + '&appid=' + this._apiKey;
     var urlWeather = 'http://api.openweathermap.org/data/2.5/weather?lat=' +
       pos.coords.latitude + '&lon=' + pos.coords.longitude + '&appid=' + this._apiKey;
-    //url = "http://api.openweathermap.org/data/2.5/forecast?q=London,uk&appid=f402bfb5a34389b2501c3e7007b46668";
+    //urlForcast = "http://api.openweathermap.org/data/2.5/forecast?q=London,uk&appid=f402bfb5a34389b2501c3e7007b46668";
+    //urlWeather = "http://api.openweathermap.org/data/2.5/weather?q=London,uk&appid=f402bfb5a34389b2501c3e7007b46668";
     LOG('owm-weather: Location success. Contacting OpenWeatherMap.org...');
     LOG(urlForcast);
     LOG(urlWeather);

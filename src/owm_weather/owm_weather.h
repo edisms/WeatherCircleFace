@@ -4,6 +4,8 @@
 
 #define OWM_WEATHER_BUFFER_SIZE 32
 
+#define OWM_WEATHER_NAME_BUFFER_SIZE 128
+
 #define OWM_WEATHER_MAX_SEGMENT_COUNT 11
 
 //! Possible statuses of the weather library
@@ -62,7 +64,7 @@ typedef struct {
 } OWMWeatherInfo;
 
 typedef struct {
-  char name[OWM_WEATHER_BUFFER_SIZE]; //! name of current location
+  char name[OWM_WEATHER_NAME_BUFFER_SIZE]; //! name of current location
   int sunrise; //! unixtime sunrise
   int sunset; //! unixtime sunset
 } OWMWeatherLocationInfo;
@@ -97,19 +99,19 @@ void owm_weather_deinit();
 //! returned OWMWeatherInfo before accessing data members.
 //! @return first OWMWeatherInfo object, internally allocated.
 //! If NULL, owm_weather_init() has not been called.
-OWMWeatherInfo* owm_weather_peek();
+const OWMWeatherInfo* owm_weather_peek();
 
 //! Peek at the current location state
 //! @return the OWMWeatherLocationInfo, internally allocated.
 //! If NULL, owm_weather_init() has not been called or the data is not ready.
-OWMWeatherLocationInfo* owm_weather_location_peek();
+const OWMWeatherLocationInfo* owm_weather_location_peek();
 
 //! Peek at the current state of the weather library. You should check the OWMWeatherStatus of the
 //! returned OWMWeatherInfo before accessing data members.
 //! @param index the index of the weather info to read
 //! @return OWMWeatherInfo object, internally allocated.
 //! If NULL, owm_weather_init() has not been called.
-OWMWeatherInfo* owm_weather_peek_index(int index);
+const OWMWeatherInfo* owm_weather_peek_index(int index);
 
 //! Peek at the current state of the weather library. 
 //! @return size of owm segments

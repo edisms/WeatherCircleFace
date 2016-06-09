@@ -1,0 +1,106 @@
+{
+    "author": "asheppard@edisms.co.uk",
+    "dependencies": {},
+    "keywords": [],
+    "name": "circle",
+    "pebble": {
+        "capabilities": [
+            "location",
+            "health"
+        ],
+        "displayName": "WeatherCircleFace",
+        "enableMultiJS": true,
+        "messageKeys": {
+            "BadKey": 100,
+            "Clouds": 31,
+            "ConditionId": 22,
+            "Description": 23,
+            "DescriptionShort": 24,
+            "Error": 102,
+            "LocationUnavailable": 101,
+            "Name": 50,
+            "Pressure": 26,
+            "Rain": 29,
+            "Reply": 2,
+            "Request": 1,
+            "Segment": 21,
+            "Snow": 30,
+            "Sunrise": 51,
+            "Sunset": 52,
+            "TempK": 25,
+            "Time": 20,
+            "WindDirection": 28,
+            "WindSpeed": 27
+        },
+        "projectType": "native",
+        "resources": {
+            "media": [
+                {
+                    "file": "images/pebble_bluetooth.png",
+                    "name": "bluetooth_blank",
+                    "targetPlatforms": [
+                        "basalt"
+                    ],
+                    "type": "bitmap"
+                },
+                {
+                    "file": "images/pebble_battery.png",
+                    "name": "battery",
+                    "targetPlatforms": [
+                        "basalt"
+                    ],
+                    "type": "bitmap"
+                },
+                {
+                    "file": "images/pebble_battery_normal.png",
+                    "name": "BATTERY_NORMAL",
+                    "targetPlatforms": [
+                        "basalt"
+                    ],
+                    "type": "bitmap"
+                },
+                {
+                    "file": "images/pebble_battery_frame.png",
+                    "name": "BATTERY_FRAME",
+                    "targetPlatforms": [
+                        "basalt"
+                    ],
+                    "type": "bitmap"
+                },
+                {
+                    "file": "images/pebble_battery_charging.png",
+                    "name": "BATTERY_CHARGING",
+                    "targetPlatforms": [
+                        "basalt"
+                    ],
+                    "type": "bitmap"
+                },
+                {
+                    "file": "images/Bluetooth-16-red.png",
+                    "name": "BLUETOOTH_NOTOK",
+                    "targetPlatforms": [
+                        "basalt"
+                    ],
+                    "type": "bitmap"
+                },
+                {
+                    "file": "images/Bluetooth-16-blue.png",
+                    "name": "BLUETOOTH_OK",
+                    "targetPlatforms": [
+                        "basalt"
+                    ],
+                    "type": "bitmap"
+                }
+            ]
+        },
+        "sdkVersion": "3",
+        "targetPlatforms": [
+            "basalt"
+        ],
+        "uuid": "0ada88fe-d605-4831-b04c-41b442fad79c",
+        "watchapp": {
+            "watchface": true
+        }
+    },
+    "version": "1.0.0"
+}
