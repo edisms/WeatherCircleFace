@@ -78,6 +78,22 @@ void redraw_weather()
 void getSegmentData(int segment, int *temp, GColor *c_temp, int *rain, GColor *c_rain, 
                     int *wind, GColor *c_wind, int *cloud, GColor *c_cloud)
 {
+  
+  int t = weather_get_segment_time(segment);
+  if (t + 3 * 60*60 < time(NULL))
+  {
+    // stale data
+    *temp = 0;
+    *c_temp = GColorWhite;
+    *rain = 0;
+    *c_rain = GColorWhite;
+    *wind = 0;
+    *c_wind = GColorWhite;
+    *cloud = 0;
+    *c_cloud = GColorWhite;
+    APP_I_LOG(APP_LOG_LEVEL_DEBUG,  "Segment data is too old, ignore.");
+  }
+  
   int raw_temp;
   int raw_wind;
   int raw_rain;
@@ -119,21 +135,24 @@ void getSegmentData(int segment, int *temp, GColor *c_temp, int *rain, GColor *c
     c_temp->argb = GColorRedARGB8;
   } 
  
-  if (raw_rain < 1)
+  if (raw_rain == 0)
   {
     *rain = 0;
+  }else if (raw_rain < 1)
+  {
+    *rain = 5;
   } else if (raw_rain < 2) {
-    *rain = 5;    
-  } else if (raw_rain < 4) {
     *rain = 10;    
-  } else if (raw_rain < 8) {
+  } else if (raw_rain < 4) {
     *rain = 15;    
-  } else if (raw_rain < 16) {
+  } else if (raw_rain < 8) {
     *rain = 20;    
-  } else if (raw_rain < 32) {
+  } else if (raw_rain < 16) {
     *rain = 25;    
-  } else if (raw_rain < 48) {
+  } else if (raw_rain < 32) {
     *rain = 30;    
+  } else if (raw_rain < 48) {
+    *rain = 35;    
   } else {
     *rain = 45;
   } 

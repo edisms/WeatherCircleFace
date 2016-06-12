@@ -1,5 +1,6 @@
 #include "owm_weather.h"
 #include "logging.h"
+#include "message_handling.h"
 typedef enum {
   OWMWeatherAppMessageKeyRequest = 1, // framework
   OWMWeatherAppMessageKeyReply,
@@ -57,6 +58,11 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   
   if(reply_tuple) {
     APP_I_LOG(APP_LOG_LEVEL_INFO, "Got reply with %ld", reply_tuple->value->int32);
+  }
+  else
+  {
+    APP_I_LOG(APP_LOG_LEVEL_INFO, "This message is not for the weather module");
+    return;
   }
   
   if(reply_tuple && reply_tuple->value->int32 == REPLY_SEGMENT) {
@@ -136,7 +142,7 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   
   if(reply_tuple && reply_tuple->value->int32 == REPLY_DONE) {
     s_status = OWMWeatherStatusAvailable;
-    app_message_deregister_callbacks();
+
     
     APP_I_LOG(APP_LOG_LEVEL_INFO, "name %s, sunrise %d, sunset %d", s_info_location.name, s_info_location.sunrise, s_info_location.sunset);
     
@@ -164,14 +170,12 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   Tuple *err_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyBadKey));
   if(err_tuple) {
     s_status = OWMWeatherStatusBadKey;
-    app_message_deregister_callbacks();
     s_callback(0, s_status);
   }
 
   err_tuple = dict_find(iter, get_app_key(OWMWeatherAppMessageKeyLocationUnavailable));
   if(err_tuple) {
     s_status = OWMWeatherStatusLocationUnavailable;
-    app_message_deregister_callbacks();
     s_callback(0, s_status);
   }
   
@@ -179,7 +183,6 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   if(err_tuple) {
     APP_I_LOG(APP_LOG_LEVEL_ERROR, err_tuple->value->cstring);
     s_status = OWMWeatherStatusLocationUnavailable;
-    app_message_deregister_callbacks();
     s_callback(0, s_status);
   }
 }
@@ -230,10 +233,7 @@ void owm_weather_init_with_base_app_key(char *api_key, int base_app_key) {
 
 void owm_weather_init(char *api_key) {
   owm_weather_init_with_base_app_key(api_key, 0);
-  
-  app_message_deregister_callbacks();
-  app_message_register_inbox_received(inbox_received_handler);
-  app_message_open(2026, 656);
+  mh_registerCallback(inbox_received_handler);
 }
 
 bool owm_weather_fetch(OWMWeatherCallback *callback) {
@@ -242,6 +242,8 @@ bool owm_weather_fetch(OWMWeatherCallback *callback) {
     APP_I_LOG(APP_LOG_LEVEL_ERROR, "OWMWeatherCallback was NULL!");
     return false;
   }
+
+   mh_registerCallback(inbox_received_handler);
 
   s_callback = callback;
 

@@ -51,6 +51,19 @@ void bat_update_proc(Layer *layer, GContext *ctx) {
   
   BatteryChargeState bcs = battery_state_service_peek();
   
+  if (bcs.is_charging)
+  {
+    graphics_context_set_fill_color(ctx, GColorMintGreen);
+  }
+  else
+  {
+    graphics_context_set_fill_color(ctx, GColorPastelYellow); 
+  }
+  GPoint p;
+  p.x = bounds.size.w/2;
+  p.y = bounds.size.h/2;
+  graphics_fill_circle(ctx, p, (bounds.size.w/2) -5);  
+  
   graphics_context_set_fill_color(ctx, GColorGreen);
   graphics_fill_radial(ctx, bounds, GOvalScaleModeFitCircle, 5, DEG_TO_TRIGANGLE(0), DEG_TO_TRIGANGLE((bcs.charge_percent/10)*36));
   if (bcs.charge_percent > 20)

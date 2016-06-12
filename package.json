@@ -6,6 +6,7 @@
     "pebble": {
         "capabilities": [
             "location",
+            "configurable",
             "health"
         ],
         "displayName": "WeatherCircleFace",
