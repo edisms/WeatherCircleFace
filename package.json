@@ -6,7 +6,6 @@
     "pebble": {
         "capabilities": [
             "location",
-            "configurable",
             "health"
         ],
         "displayName": "WeatherCircleFace",
@@ -31,7 +30,11 @@
             "TempK": 25,
             "Time": 20,
             "WindDirection": 28,
-            "WindSpeed": 27
+            "WindSpeed": 27,
+            "KEY_API_KEY": 1000,
+            "KEY_DEFAULT_API_KEY": 1001,
+            "KEY_USE_FAKE_WEATHER": 1002,
+            "KEY_TWENTY_FOUR":1003
         },
         "projectType": "native",
         "resources": {
