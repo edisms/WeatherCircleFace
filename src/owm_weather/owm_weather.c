@@ -1,6 +1,7 @@
 #include "owm_weather.h"
 #include "logging.h"
 #include "message_handling.h"
+#include "configuration.h"
 typedef enum {
   OWMWeatherAppMessageKeyRequest = 1, // framework
   OWMWeatherAppMessageKeyReply,
@@ -45,11 +46,15 @@ static OWMWeatherLocationInfo s_info_location_building;
 static OWMWeatherInfo s_info_segments[OWM_WEATHER_MAX_SEGMENT_COUNT]; //! database of weather information
 static OWMWeatherLocationInfo s_info_location;
 
-static char s_api_key[33];
-static int s_base_app_key = 0;
-
 static int get_app_key(OWMWeatherAppMessageKey key) {
-  return (int) key + s_base_app_key;
+  return (int) key;
+}
+
+void owm_weather_reset_data()
+{
+  s_dataBuilt = false;
+  memset(s_info_segments, 0, sizeof(OWMWeatherInfo)*OWM_WEATHER_MAX_SEGMENT_COUNT);
+  memset(&s_info_location, 0, sizeof(OWMWeatherLocationInfo));
 }
 
 static void inbox_received_handler(DictionaryIterator *iter, void *context) {
@@ -202,8 +207,7 @@ static bool fetch() {
   }
 
   dict_write_int16(out, 0, 0);
-  dict_write_cstring(out, get_app_key(OWMWeatherAppMessageKeyRequest), s_api_key);
-    dict_write_cstring(out, 1, s_api_key);
+  dict_write_cstring(out, get_app_key(OWMWeatherAppMessageKeyRequest), configuration_get_api_key());
   dict_write_int16(out, get_app_key(OWMWeatherAppMessageKeySegment), OWM_WEATHER_MAX_SEGMENT_COUNT);
 
   APP_I_LOG(APP_LOG_LEVEL_ERROR, "sent message");
@@ -218,16 +222,8 @@ static bool fetch() {
   return true;
 }
 
-void owm_weather_init_with_base_app_key(char *api_key, int base_app_key) {
-  s_base_app_key = base_app_key;
-
-  if(!api_key) {
-    APP_I_LOG(APP_LOG_LEVEL_ERROR, "API key was NULL!");
-    return;
-  }
-
-  strncpy(s_api_key, api_key, sizeof(s_api_key));
-
+void owm_weather_init_with_base_app_key() 
+{
    s_status = OWMWeatherStatusNotYetFetched;
 }
 

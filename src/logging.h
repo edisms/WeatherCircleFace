@@ -1,6 +1,6 @@
 #include <pebble.h>
 
-#define LOG_ENABLED
+//#define LOG_ENABLED
 
 #ifdef LOG_ENABLED
 #define APP_I_LOG APP_LOG

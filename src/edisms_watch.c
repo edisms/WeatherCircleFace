@@ -5,6 +5,7 @@
 #include "bat_monitor.h"
 #include "health_monitor.h"
 #include "logging.h"
+#include "configuration.h"
 
 static Window *s_main_window;
 static TextLayer *s_time_layer;
@@ -43,6 +44,14 @@ void weather_callback()
   redraw_weather();
 }
 
+void configuration_callback()
+{
+  APP_I_LOG(APP_LOG_LEVEL_INFO, "configuration_callback"); 
+  
+  weather_refresh(true);
+  update_time();
+}
+
 void init() {
   // Create main Window element and assign to pointer
   s_main_window = window_create();
@@ -52,6 +61,8 @@ void init() {
     .load = main_window_load,
     .unload = main_window_unload
   });
+  
+  configuration_init();
 
   // Show the Window on the watch, with animated=true
   window_stack_push(s_main_window, true);
@@ -63,7 +74,9 @@ void init() {
   
   weather_setup(weather_callback);
   
-  weather_refresh();
+  configuration_set_change_callback(configuration_callback);
+  
+  weather_refresh(true);
   
   // Register with TickTimerService
   tick_timer_service_subscribe(MINUTE_UNIT|HOUR_UNIT, tick_handler);  
@@ -133,7 +146,7 @@ void bt_callback(bool connected)
 {
   if (connected)
   {
-    weather_refresh();
+    weather_refresh(false);
     health_monitor_refreah();
   }
 }
@@ -143,12 +156,12 @@ void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   APP_I_LOG(APP_LOG_LEVEL_INFO, "tick_handler minutes %d, units %d", tick_time->tm_min, units_changed);
   if (units_changed & HOUR_UNIT)
   {
-    weather_refresh();
+    weather_refresh(false);
   }
   
   if ((tick_time->tm_min % 5 == 0) && !weather_is_ready())
   {
-    weather_refresh();
+    weather_refresh(false);
   }
 }
 

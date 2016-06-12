@@ -10,17 +10,14 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context);
 static char s_api_key[API_KEY_BUFFER];
 static bool s_use_default_key = true;
 static bool s_use_fake_weather = false;
-static bool s_use_twenty_four = true;
+static configuration_callback_* s_cb;
 
 #define KEY_API_KEY 1000
 #define KEY_DEFAULT_API_KEY (KEY_API_KEY + 1)
 #define KEY_USE_FAKE_WEATHER (KEY_API_KEY + 2)
-#define KEY_TWENTY_FOUR (KEY_API_KEY + 3)
 
-void configuration_init()
+static void set_key()
 {
-  mh_registerCallback(inbox_received_handler);
-  
   if (persist_exists(KEY_DEFAULT_API_KEY))
   {
     s_use_default_key = persist_read_bool(KEY_DEFAULT_API_KEY);
@@ -44,9 +41,21 @@ void configuration_init()
   
   if (s_use_default_key)
   {
-    strncpy(s_api_key, KEY_DEFAULT_API_KEY, (strlen(DEFAULT_API_KEY)));
-  }
+    strncpy(s_api_key, DEFAULT_API_KEY, (strlen(DEFAULT_API_KEY)));
+  } 
+}
+
+void configuration_init()
+{
+  mh_registerCallback(inbox_received_handler);
+  
+  set_key();
  
+  if (persist_exists(KEY_USE_FAKE_WEATHER))
+  {
+    s_use_fake_weather = persist_read_bool(KEY_USE_FAKE_WEATHER);
+  }
+  
 }
 
 void inbox_received_handler(DictionaryIterator *iter, void *context)
@@ -54,7 +63,12 @@ void inbox_received_handler(DictionaryIterator *iter, void *context)
   Tuple *API_tuple = dict_find(iter, KEY_API_KEY);
   Tuple *default_API_tuple = dict_find(iter, KEY_DEFAULT_API_KEY);
   Tuple *fake_weather_tuple = dict_find(iter, KEY_USE_FAKE_WEATHER);
-  Tuple *twentyfour_weather_tuple = dict_find(iter, KEY_TWENTY_FOUR);
+  
+  if (!API_tuple && !default_API_tuple && !fake_weather_tuple)
+  {
+    APP_I_LOG(APP_LOG_LEVEL_INFO, "No configuration data");
+    return;
+  }
     
   if(API_tuple) {
     strncpy(s_api_key, API_tuple->value->cstring, API_KEY_BUFFER);
@@ -73,12 +87,26 @@ void inbox_received_handler(DictionaryIterator *iter, void *context)
     s_use_fake_weather = fake_weather_tuple->value->int32 == 1 ? true : false;
     persist_write_bool(KEY_USE_FAKE_WEATHER, s_use_fake_weather);
   }  
+    
+  set_key();
   
-  if(twentyfour_weather_tuple) {
-    APP_I_LOG(APP_LOG_LEVEL_INFO, "use fake weather %ld", twentyfour_weather_tuple->value->int32);
-    s_use_twenty_four = twentyfour_weather_tuple->value->int32 == 1 ? true : false;
-    persist_write_bool(KEY_TWENTY_FOUR, s_use_twenty_four);
-  }  
+  if (s_cb)
+  {
+    s_cb();
+  }
 }
 
+const char* configuration_get_api_key()
+{
+  return s_api_key;
+}
 
+bool configuration_use_fake_weather()
+{
+  return s_use_fake_weather;
+}
+
+void configuration_set_change_callback(configuration_callback_* cb)
+{
+  s_cb = cb;
+}

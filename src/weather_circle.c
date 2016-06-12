@@ -92,6 +92,7 @@ void getSegmentData(int segment, int *temp, GColor *c_temp, int *rain, GColor *c
     *cloud = 0;
     *c_cloud = GColorWhite;
     APP_I_LOG(APP_LOG_LEVEL_DEBUG,  "Segment data is too old, ignore.");
+    return;
   }
   
   int raw_temp;

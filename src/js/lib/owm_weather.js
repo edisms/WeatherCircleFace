@@ -1,5 +1,5 @@
 function LOG(x) {
-    console.log(x);
+    //console.log(x);
 }
 
 var OWMWeather = function(options) {

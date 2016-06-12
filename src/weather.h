@@ -10,7 +10,7 @@ void weather_deinit();
 
 void weather_setup(weather_callback_* cb);
 
-void weather_refresh();
+void weather_refresh(bool clear);
 
 bool weather_is_ready();
   

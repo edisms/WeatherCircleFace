@@ -17,8 +17,8 @@ static void js_ready_handler(void *context) {
 void weather_init()
   {
       // Replace this with your own API key from OpenWeatherMap.org
-  char *api_key = "f402bfb5a34389b2501c3e7007b46668";
-  owm_weather_init(api_key);
+  //char *api_key = "f402bfb5a34389b2501c3e7007b46668";
+  owm_weather_init();
 }
 
 void weather_deinit()
@@ -33,9 +33,13 @@ void weather_setup(weather_callback_* cb)
   s_cb = cb;  
 }
 
-void weather_refresh()
+void weather_refresh(bool clear)
 {
-    app_timer_register(3000, js_ready_handler, NULL);
+  if (clear)
+  {
+    owm_weather_reset_data();
+  }
+  app_timer_register(3000, js_ready_handler, NULL);
 }
   
 void weather_get_segment(int segment, int* temp, int* wind, int* rain, int* snow, int* cloud)
@@ -55,7 +59,7 @@ const char *weather_location()
   if (ok)
   {
     const OWMWeatherLocationInfo* owm = owm_weather_location_peek();
-    APP_I_LOG(APP_LOG_LEVEL_DEBUG, "Peeked location %s", owm->name);
+    //APP_I_LOG(APP_LOG_LEVEL_DEBUG, "Peeked location %s", owm->name);
     return owm->name;
   }
   APP_I_LOG(APP_LOG_LEVEL_DEBUG, "No name?");
